@@ -1,0 +1,368 @@
+import { summaryConfigSchema, type LocalizedText, type SummaryConfig, type SummaryConfigInput, type WidgetConfig } from "@/features/summary/config";
+
+// Built-in summary configuration per report: plain data, the same shape an admin can import as JSON.
+// Field keys are the ones in src/data/reports.ts. "{topN}" in a ranking title is replaced by the rows shown.
+
+const text = (en: string, he: string): LocalizedText => ({ en, he });
+const ORDERS_AXIS = text("Orders", "הזמנות");
+
+const orders: SummaryConfigInput = {
+  widgets: [
+    { id: "orders_count", type: "basicCalculation", calculation: "count", title: text("Orders", "הזמנות"), subtitle: text("Rows in the current view", "שורות בתצוגה הנוכחית") },
+    {
+      id: "orders_all",
+      type: "basicCalculation",
+      calculation: "count",
+      ignoreActiveFilters: true,
+      tone: "neutral",
+      title: text("All orders", "כל ההזמנות"),
+      subtitle: text("Ignores the active filters", "מתעלם מהסינונים הפעילים"),
+    },
+    {
+      id: "customers_unique",
+      type: "basicCalculation",
+      calculation: "unique",
+      field: "customer",
+      title: text("Customers served", "לקוחות שהזמינו"),
+      subtitle: text("Distinct customers", "לקוחות שונים"),
+    },
+    {
+      id: "revenue_total",
+      type: "custom",
+      field: "amount",
+      aggregation: "sum",
+      tone: "success",
+      title: text("Revenue", "הכנסות"),
+      subtitle: text("Sum of order amounts", "סכום ההזמנות"),
+    },
+    {
+      id: "revenue_usd",
+      type: "basicCalculation",
+      calculation: "sum",
+      field: "amount",
+      tone: "success",
+      filters: [{ field: "currency", values: ["USD"] }],
+      drill: { filters: [{ field: "currency", values: ["USD"] }] },
+      title: text("Revenue in US dollars", "הכנסות בדולר אמריקאי"),
+      subtitle: text("Orders paid in USD only", "הזמנות בדולרים בלבד"),
+    },
+    {
+      id: "delivered_late",
+      type: "dualValue",
+      title: text("Delivered and late", "נמסרו ובאיחור"),
+      left: { title: text("Delivered", "נמסרו"), filters: [{ field: "status", values: ["delivered"] }] },
+      right: { title: text("Late", "באיחור"), filters: [{ field: "status", values: ["late"] }] },
+      drill: { filters: [{ field: "status", values: ["delivered", "late"] }] },
+    },
+    {
+      id: "orders_trend",
+      type: "comparison",
+      operation: "count",
+      dateField: "orderDate",
+      currentPeriod: { type: "last_30_days" },
+      previousPeriod: { relationship: "previous_period" },
+      title: text("Orders, last 30 days", "הזמנות, 30 הימים האחרונים"),
+      subtitle: text("Compared with the 30 days before", "בהשוואה ל־30 הימים שקדמו"),
+    },
+    {
+      id: "top_agents",
+      type: "ranking",
+      labelField: "agent",
+      field: "items",
+      calculation: "sum",
+      showShare: true,
+      valueSuffix: text("items", "פריטים"),
+      drill: {},
+      title: text("Top {topN} agents by items sold", "{topN} הנציגים המובילים לפי פריטים שנמכרו"),
+    },
+    {
+      id: "country_items",
+      type: "basicCalculation",
+      calculation: "average",
+      field: "items",
+      displayCondition: { requireSingleValueOn: ["country"] },
+      title: text("Average items, one country", "ממוצע פריטים במדינה אחת"),
+      subtitle: text("Shown when the rows cover one country", "מוצג כשהשורות שייכות למדינה אחת"),
+    },
+  ],
+  charts: [
+    {
+      id: "by_status",
+      type: "bar",
+      dataField: "status",
+      yAxisLabel: ORDERS_AXIS,
+      title: text("Orders by status", "הזמנות לפי סטטוס"),
+      drill: { filters: [{ field: "status", values: ["late", "cancelled", "returned"] }] },
+      insights: {
+        title: text("What to look for", "במה כדאי להתמקד"),
+        lines: [text("Late, cancelled and returned orders are the ones to act on.", "הזמנות באיחור, מבוטלות ומוחזרות הן אלה שדורשות טיפול.")],
+      },
+    },
+    { id: "by_country", type: "horizontalBar", dataField: "country", limit: 6, showOther: true, title: text("Orders by country", "הזמנות לפי מדינה") },
+    {
+      id: "by_channel_status",
+      type: "multiBar",
+      dataField: "status",
+      groupBy: "channel",
+      series: { field: "status", aggregation: "count" },
+      yAxisLabel: ORDERS_AXIS,
+      title: text("Orders by channel and status", "הזמנות לפי ערוץ וסטטוס"),
+    },
+    {
+      id: "by_month",
+      type: "line",
+      dataField: "orderDate",
+      granularity: "month",
+      sortBy: "label",
+      yAxisLabel: ORDERS_AXIS,
+      title: text("Orders per month", "הזמנות לפי חודש"),
+    },
+    {
+      id: "items_by_month_channel",
+      type: "area",
+      dataField: "items",
+      groupBy: "orderDate",
+      granularity: "month",
+      series: { field: "channel", aggregation: "sum" },
+      displayCondition: { rules: [{ subject: "rowCount", operator: "greaterThanOrEqual", value: 20 }] },
+      yAxisLabel: text("Items", "פריטים"),
+      title: text("Items sold per month by channel", "פריטים שנמכרו לפי חודש וערוץ"),
+    },
+    { id: "channel_share", type: "pie", dataField: "channel", title: text("Share of orders by channel", "חלוקת ההזמנות לפי ערוץ") },
+    {
+      id: "by_currency",
+      type: "doughnut",
+      dataField: "currency",
+      ignoreActiveFilters: true,
+      title: text("All orders by currency", "כל ההזמנות לפי מטבע"),
+    },
+    {
+      id: "items_spread",
+      type: "scatter",
+      dataField: "items",
+      sortBy: "label",
+      xAxisLabel: text("Items in an order", "פריטים בהזמנה"),
+      yAxisLabel: ORDERS_AXIS,
+      title: text("Orders by number of items", "הזמנות לפי מספר פריטים"),
+    },
+    {
+      id: "by_agent_recent",
+      type: "free",
+      dataField: "agent",
+      dateRange: { field: "orderDate", type: "last_90_days" },
+      yAxisLabel: ORDERS_AXIS,
+      title: text("Orders by agent, last 90 days", "הזמנות לפי נציג, 90 הימים האחרונים"),
+    },
+  ],
+};
+
+const customers: SummaryConfigInput = {
+  widgets: [
+    { id: "customers_count", type: "basicCalculation", calculation: "count", title: text("Customers", "לקוחות"), subtitle: text("Rows in the current view", "שורות בתצוגה הנוכחית") },
+    {
+      id: "lifetime_value",
+      type: "basicCalculation",
+      calculation: "sum",
+      field: "lifetimeValue",
+      tone: "success",
+      title: text("Lifetime value", "ערך לקוח מצטבר"),
+      subtitle: text("Sum over the rows in view", "סכום השורות בתצוגה"),
+    },
+    { id: "orders_average", type: "custom", field: "orders", aggregation: "average", title: text("Average orders per customer", "ממוצע הזמנות ללקוח") },
+    {
+      id: "active_inactive",
+      type: "dualValue",
+      title: text("Active and inactive", "פעילים ולא פעילים"),
+      left: { title: text("Active", "פעילים"), filters: [{ field: "active", values: [true] }] },
+      right: { title: text("Inactive", "לא פעילים"), filters: [{ field: "active", values: [false] }] },
+    },
+    {
+      id: "new_customers",
+      type: "comparison",
+      operation: "count",
+      dateField: "since",
+      currentPeriod: { type: "year_to_date" },
+      previousPeriod: { relationship: "same_period_last_year" },
+      title: text("New customers this year", "לקוחות חדשים השנה"),
+      subtitle: text("Compared with the same period last year", "בהשוואה לתקופה המקבילה אשתקד"),
+    },
+    {
+      id: "top_customers",
+      type: "ranking",
+      labelField: "name",
+      field: "lifetimeValue",
+      showShare: true,
+      title: text("Top {topN} customers by lifetime value", "{topN} הלקוחות המובילים לפי ערך מצטבר"),
+    },
+  ],
+  charts: [
+    {
+      id: "by_segment",
+      type: "pie",
+      dataField: "segment",
+      drill: { filters: [{ field: "segment", values: ["enterprise"] }] },
+      title: text("Customers by segment", "לקוחות לפי פלח"),
+    },
+    { id: "by_country", type: "bar", dataField: "country", limit: 8, showOther: true, title: text("Customers by country", "לקוחות לפי מדינה") },
+    { id: "joined_by_year", type: "line", dataField: "since", granularity: "year", sortBy: "label", title: text("New customers per year", "לקוחות חדשים לפי שנה") },
+    {
+      id: "value_by_segment",
+      type: "multiBar",
+      dataField: "lifetimeValue",
+      groupBy: "segment",
+      series: { field: "active", aggregation: "sum" },
+      title: text("Lifetime value by segment and activity", "ערך מצטבר לפי פלח ופעילות"),
+    },
+    {
+      id: "orders_spread",
+      type: "scatter",
+      dataField: "orders",
+      sortBy: "label",
+      xAxisLabel: text("Orders per customer", "הזמנות ללקוח"),
+      yAxisLabel: text("Customers", "לקוחות"),
+      title: text("Customers by number of orders", "לקוחות לפי מספר הזמנות"),
+    },
+  ],
+};
+
+const ROWS_IN_VIEW = text("Rows in the current view", "שורות בתצוגה הנוכחית");
+const count = (id: string, title: LocalizedText): SummaryConfigInput["widgets"][number] => ({ id, type: "basicCalculation", calculation: "count", title, subtitle: ROWS_IN_VIEW });
+
+const invoices: SummaryConfigInput = {
+  widgets: [
+    count("invoices_count", text("Invoices", "חשבוניות")),
+    { id: "invoiced_total", type: "custom", field: "total", aggregation: "sum", tone: "success", title: text("Invoiced total", "סך החשבוניות"), subtitle: text("Sum of invoice totals", "סכום החשבוניות") },
+    {
+      id: "paid_overdue",
+      type: "dualValue",
+      title: text("Paid and overdue", "שולמו ובפיגור"),
+      left: { title: text("Paid", "שולמו"), filters: [{ field: "status", values: ["paid"] }] },
+      right: { title: text("Overdue", "בפיגור"), filters: [{ field: "status", values: ["overdue"] }] },
+      drill: { filters: [{ field: "status", values: ["overdue"] }] },
+    },
+    {
+      id: "issued_trend",
+      type: "comparison",
+      dateField: "issuedOn",
+      currentPeriod: { type: "last_30_days" },
+      title: text("Invoices issued, last 30 days", "חשבוניות שהופקו, 30 הימים האחרונים"),
+      subtitle: text("Compared with the 30 days before", "בהשוואה ל־30 הימים שקדמו"),
+    },
+    { id: "top_customers", type: "ranking", labelField: "customer", showShare: true, drill: {}, title: text("Top {topN} customers by invoices", "{topN} הלקוחות המובילים לפי חשבוניות") },
+    { id: "tax_average", type: "basicCalculation", calculation: "average", field: "taxPct", title: text("Average tax rate", "שיעור מס ממוצע") },
+  ],
+  charts: [
+    { id: "by_status", type: "doughnut", dataField: "status", title: text("Invoices by status", "חשבוניות לפי סטטוס") },
+    { id: "by_method", type: "bar", dataField: "method", title: text("Paid invoices by payment method", "חשבוניות ששולמו לפי אמצעי תשלום") },
+    { id: "by_month", type: "area", dataField: "issuedOn", granularity: "month", sortBy: "label", title: text("Invoices issued per month", "חשבוניות שהופקו לפי חודש") },
+    { id: "status_by_country", type: "multiBar", dataField: "status", groupBy: "country", series: { field: "status" }, title: text("Invoice status by country", "סטטוס חשבוניות לפי מדינה") },
+    { id: "by_tax", type: "horizontalBar", dataField: "taxPct", sortBy: "label", title: text("Invoices by tax rate", "חשבוניות לפי שיעור מס") },
+  ],
+};
+
+const shipments: SummaryConfigInput = {
+  widgets: [
+    count("shipments_count", text("Shipments", "משלוחים")),
+    { id: "delay_average", type: "basicCalculation", calculation: "average", field: "delayDays", tone: "warning", title: text("Average delay in days", "עיכוב ממוצע בימים") },
+    { id: "weight_total", type: "basicCalculation", calculation: "sum", field: "weightKg", title: text("Total weight in kg", "משקל כולל בק״ג") },
+    {
+      id: "delivered_delayed",
+      type: "dualValue",
+      title: text("Delivered and delayed", "נמסרו ומתעכבים"),
+      left: { title: text("Delivered", "נמסרו"), filters: [{ field: "status", values: ["delivered"] }] },
+      right: { title: text("Delayed", "מתעכבים"), filters: [{ field: "status", values: ["delayed"] }] },
+      drill: { filters: [{ field: "status", values: ["delayed"] }] },
+    },
+    {
+      id: "shipped_trend",
+      type: "comparison",
+      dateField: "shippedAt",
+      currentPeriod: { type: "last_30_days" },
+      title: text("Shipped, last 30 days", "נשלחו, 30 הימים האחרונים"),
+      subtitle: text("Compared with the 30 days before", "בהשוואה ל־30 הימים שקדמו"),
+    },
+    { id: "slowest_carriers", type: "ranking", labelField: "carrier", field: "delayDays", calculation: "average", title: text("Carriers by average delay", "מובילים לפי עיכוב ממוצע"), valueSuffix: text("days", "ימים") },
+  ],
+  charts: [
+    { id: "by_status", type: "pie", dataField: "status", title: text("Shipments by status", "משלוחים לפי סטטוס") },
+    { id: "by_carrier_status", type: "multiBar", dataField: "status", groupBy: "carrier", series: { field: "status" }, title: text("Shipments by carrier and status", "משלוחים לפי מוביל וסטטוס") },
+    { id: "by_destination", type: "horizontalBar", dataField: "destination", limit: 6, showOther: true, title: text("Shipments by destination", "משלוחים לפי יעד") },
+    { id: "by_month", type: "line", dataField: "shippedAt", granularity: "month", sortBy: "label", title: text("Shipments per month", "משלוחים לפי חודש") },
+    { id: "delay_spread", type: "scatter", dataField: "delayDays", sortBy: "label", xAxisLabel: text("Days late", "ימי איחור"), title: text("Shipments by days late", "משלוחים לפי ימי איחור") },
+  ],
+};
+
+const tickets: SummaryConfigInput = {
+  widgets: [
+    count("tickets_count", text("Tickets", "פניות")),
+    { id: "response_median", type: "basicCalculation", calculation: "median", field: "firstResponseH", title: text("Median first response, hours", "זמן תגובה ראשונה חציוני, שעות") },
+    { id: "satisfaction_average", type: "custom", field: "satisfaction", aggregation: "average", tone: "success", title: text("Average satisfaction", "שביעות רצון ממוצעת"), subtitle: text("Rated tickets only, 1 to 5", "פניות מדורגות בלבד, 1 עד 5") },
+    {
+      id: "sla",
+      type: "dualValue",
+      title: text("Response target", "יעד זמן תגובה"),
+      left: { title: text("Met", "עמדו ביעד"), filters: [{ field: "slaMet", values: [true] }] },
+      right: { title: text("Missed", "לא עמדו ביעד"), filters: [{ field: "slaMet", values: [false] }] },
+      drill: { filters: [{ field: "slaMet", values: [false] }] },
+    },
+    {
+      id: "opened_trend",
+      type: "comparison",
+      dateField: "openedAt",
+      currentPeriod: { type: "last_30_days" },
+      title: text("Tickets opened, last 30 days", "פניות שנפתחו, 30 הימים האחרונים"),
+      subtitle: text("Compared with the 30 days before", "בהשוואה ל־30 הימים שקדמו"),
+    },
+    { id: "top_agents", type: "ranking", labelField: "agent", showShare: true, drill: {}, title: text("Top {topN} agents by tickets", "{topN} הנציגים המובילים לפי פניות") },
+  ],
+  charts: [
+    { id: "by_status", type: "bar", dataField: "status", title: text("Tickets by status", "פניות לפי סטטוס") },
+    { id: "by_priority", type: "doughnut", dataField: "priority", title: text("Tickets by priority", "פניות לפי עדיפות") },
+    { id: "by_channel_priority", type: "multiBar", dataField: "priority", groupBy: "channel", series: { field: "priority" }, title: text("Tickets by channel and priority", "פניות לפי ערוץ ועדיפות") },
+    { id: "by_month", type: "line", dataField: "openedAt", granularity: "month", sortBy: "label", title: text("Tickets opened per month", "פניות שנפתחו לפי חודש") },
+    { id: "by_subject", type: "horizontalBar", dataField: "subject", title: text("Tickets by subject", "פניות לפי נושא") },
+  ],
+};
+
+const products: SummaryConfigInput = {
+  widgets: [
+    count("products_count", text("Products", "מוצרים")),
+    { id: "units_sold", type: "basicCalculation", calculation: "sum", field: "unitsSold", tone: "success", title: text("Units sold", "יחידות שנמכרו") },
+    { id: "price_average", type: "basicCalculation", calculation: "average", field: "price", title: text("Average price", "מחיר ממוצע") },
+    { id: "margin_median", type: "basicCalculation", calculation: "median", field: "marginPct", title: text("Median margin", "רווח גולמי חציוני") },
+    {
+      id: "stock_state",
+      type: "dualValue",
+      title: text("In stock and out of stock", "במלאי ואזלו"),
+      left: { title: text("In stock", "במלאי"), filters: [{ field: "stockStatus", values: ["in_stock"] }] },
+      right: { title: text("Out of stock", "אזלו"), filters: [{ field: "stockStatus", values: ["out_of_stock"] }] },
+      drill: { filters: [{ field: "stockStatus", values: ["out_of_stock"] }] },
+    },
+    { id: "top_products", type: "ranking", labelField: "name", field: "unitsSold", calculation: "sum", showShare: true, drill: {}, title: text("Top {topN} products by units sold", "{topN} המוצרים המובילים לפי יחידות שנמכרו") },
+  ],
+  charts: [
+    { id: "by_category", type: "pie", dataField: "category", title: text("Products by category", "מוצרים לפי קטגוריה") },
+    { id: "by_stock_status", type: "bar", dataField: "stockStatus", title: text("Products by stock status", "מוצרים לפי מצב מלאי") },
+    { id: "units_by_category", type: "multiBar", dataField: "unitsSold", groupBy: "category", series: { field: "active", aggregation: "sum" }, title: text("Units sold by category and activity", "יחידות שנמכרו לפי קטגוריה ופעילות") },
+    { id: "launched_by_year", type: "area", dataField: "launchedOn", granularity: "year", sortBy: "label", title: text("Products launched per year", "מוצרים שהושקו לפי שנה") },
+    { id: "by_origin", type: "horizontalBar", dataField: "origin", limit: 6, showOther: true, title: text("Products by country of origin", "מוצרים לפי ארץ מקור") },
+  ],
+};
+
+// Parsed once at load, so a mistake in a built-in config fails fast instead of rendering a broken card.
+export const BUILT_IN_SUMMARY: Readonly<Record<string, SummaryConfig>> = {
+  orders: summaryConfigSchema.parse(orders),
+  customers: summaryConfigSchema.parse(customers),
+  invoices: summaryConfigSchema.parse(invoices),
+  shipments: summaryConfigSchema.parse(shipments),
+  tickets: summaryConfigSchema.parse(tickets),
+  products: summaryConfigSchema.parse(products),
+};
+
+/** Shown when a report has no widgets at all, so its summary still says how many rows there are. */
+export const FALLBACK_WIDGET: WidgetConfig = {
+  id: "fallback_row_count",
+  type: "basicCalculation",
+  calculation: "count",
+  title: text("Rows", "שורות"),
+};

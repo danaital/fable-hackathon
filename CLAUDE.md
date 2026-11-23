@@ -7,6 +7,7 @@
 - Test: npm test
 - Build: npm run build
 - Deploy preview: `vercel` (production: `vercel --prod`, merge captain only). Env vars live in Vercel (`vercel env pull .env` to sync locally), never in git.
+- Health check: `node scripts/health-check.mjs` (Node version, Vercel login/link/env, Supabase reachability, docs vault links and format, OpenAPI contract; exits 1 on any failure, never prints secret values).
 
 ## Team workflow
 
@@ -16,7 +17,7 @@
 4. After implementation, run tests and the app. If there is a UI, verify with Playwright or a real browser.
 5. Then ask the reviewer subagent to review, and the security-reviewer when the change touches auth, routes, data, env vars or model calls. Only report issues with confidence 80+.
 6. If review or tests find a bug, the debugger fixes it and the tester re-runs.
-7. The docs-keeper checks README.md, CLAUDE.md, docs/DECISIONS.md, and docs/CHANGELOG.md before anyone claims done.
+7. The docs-keeper checks README.md, CLAUDE.md, docs/DECISIONS.md, docs/CHANGELOG.md, and docs/openapi.json before anyone claims done.
 8. Never claim done without a command that was actually run and its output.
 
 ## Code rules (every agent)
@@ -65,6 +66,8 @@ After your change, update the matching docs in the same turn:
 - Commands, conventions, agent workflow: CLAUDE.md
 - Architecture or trade-off: append an ADR to docs/DECISIONS.md (use its template)
 - What changed: add a line under Unreleased in docs/CHANGELOG.md (Keep a Changelog sections)
+- API routes: docs/openapi.json (OpenAPI 3.1, JSON). The planner writes each route there before it is built; route handlers must match it.
+- Obsidian format: the repo is an Obsidian vault. Link notes with standard Markdown links (`[text](path.md)`), never `[[wikilinks]]`, so GitHub renders them too. Callouts use only the types GitHub also renders: `> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WARNING]`, `> [!CAUTION]`. Every note in `docs/` starts with a `tags` property; root files stay plain. Every note links to or from another note. `node scripts/health-check.mjs` checks all of this.
 - Commits: Conventional Commits, e.g. `feat(api): add search route`, `fix(ui): empty state`, `docs: update README`
 
 Research and decks: use /deep-research, /competitive-brief, /synthesize-research, /product-brainstorming, /write-spec, /user-research, /research-synthesis, and /pptx for the pitch deck.
@@ -86,7 +89,7 @@ Do not invent APIs. If unsure, say so and point to the command you ran.
 
 - One shared repo. main must stay demoable.
 - Humans: frontend, backend/data, AI/prompts, demo/pitch. Edit only your slice and directories.
-- Start together in /plan. Write the agreed interfaces in docs/DECISIONS.md.
+- Start together in /plan. Write the agreed interfaces in docs/DECISIONS.md and the API routes in docs/openapi.json.
 - Each person runs the project subagents on their own slice. Use /pr-handoff before asking someone to continue.
 - Merge to main around minute 35 and 50 after tests or a browser check. One merge captain.
 - Before claiming the demo ready, run /hackathon-demo-ready.

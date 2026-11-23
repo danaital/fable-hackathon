@@ -15,12 +15,17 @@ revealed at the event; the app is built then. The full event timeline is in
 - **Rules** — [CLAUDE.md](CLAUDE.md): the code, UI, security, and docs rules every agent
   (human or AI) follows, built on the Ponytail *smallest complete change* discipline.
 - **Skills** — `/plan`, `/hackathon-demo-ready`, `/pr-handoff`, `/code-review-checklist`,
-  `/docs-update`, plus research and pitch-deck skills.
+  `/docs-update`, `/caveman`, plus research and pitch-deck skills. Agents preload Ponytail,
+  caveman, and Obsidian skills (map in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)).
 - **MCP servers** — Vercel, Supabase, and Playwright wired in [`.mcp.json`](.mcp.json)
   (public URLs only, no secrets).
-- **Hooks** — Prettier-on-save ([`.claude/hooks/format-prettier.sh`](.claude/hooks/format-prettier.sh)).
+- **Hooks** — Prettier-on-save ([`.claude/hooks/format-prettier.sh`](.claude/hooks/format-prettier.sh))
+  and a desktop alert when Claude waits ([`.claude/hooks/notify.sh`](.claude/hooks/notify.sh)).
 - **Docs** — this README, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md),
-  [docs/DECISIONS.md](docs/DECISIONS.md), [docs/CHANGELOG.md](docs/CHANGELOG.md).
+  [docs/DECISIONS.md](docs/DECISIONS.md), [docs/CHANGELOG.md](docs/CHANGELOG.md), and the API
+  contract [`docs/openapi.json`](docs/openapi.json). The repo opens as an Obsidian vault.
+- **Health check** — [`scripts/health-check.mjs`](scripts/health-check.mjs) checks Vercel,
+  Supabase, the docs vault, and the API contract in one command.
 
 ## Quickstart
 
@@ -30,7 +35,9 @@ revealed at the event; the app is built then. The full event timeline is in
    project plugins and verifies the pack.
 4. Run `/mcp` and sign in (OAuth) to **Vercel**, **Supabase**, and the **GitHub** plugin.
    Playwright needs no account. *These steps are human-only — Claude cannot complete an OAuth screen.*
-5. Copy `.env.example` to `.env` and add your own local secrets. Never commit `.env`.
+5. Copy `.env.example` to `.env` and add your own local secrets, or run `vercel env pull .env`.
+   Never commit `.env`.
+6. Run `node scripts/health-check.mjs`. Every line should say `PASS` before the event starts.
 
 ## Commands
 
@@ -41,11 +48,14 @@ revealed at the event; the app is built then. The full event timeline is in
 | Test | `npm test` |
 | Build | `npm run build` |
 | Deploy preview | `vercel` (production `vercel --prod`, merge captain only) |
+| Health check | `node scripts/health-check.mjs` (exits 1 on any failure) |
 
 Env vars live in Vercel (`vercel env pull .env` to sync locally), never in git.
 
-> **Note:** application code (`package.json`, `src/`) is scaffolded at the event, once the
-> category is known — not committed ahead of time.
+> [!NOTE]
+> Application code (`package.json`, `src/`) is scaffolded at the event, once the category is
+> known — not committed ahead of time. Then add `"health": "node scripts/health-check.mjs"`
+> to `package.json` scripts so `npm run health` works.
 
 ## The team
 
@@ -96,9 +106,65 @@ The full picture, data flow, trust boundaries, and the agent pipeline are in
 | Supabase | HTTP `https://mcp.supabase.com/mcp` | Human `/mcp` OAuth |
 | Playwright | stdio `npx -y @playwright/mcp@latest` | None |
 | GitHub | `github@claude-plugins-official` plugin | Human `/mcp` OAuth |
-| Obsidian | `obsidian@obsidian-skills` plugin (skills only; no MCP) | None |
+| Obsidian | `obsidian@obsidian-skills` plugin (skills only; no MCP); this repo is the vault | None |
 
 No `Authorization` headers or tokens are committed. OAuth sign-in happens per laptop via `/mcp`.
+
+## Docs in Obsidian
+
+1. In Obsidian, choose **Open folder as vault** and pick this repo's folder. Obsidian's
+   per-laptop state (`.obsidian/`) is gitignored.
+2. The notes are this README, `CLAUDE.md`, `TEAM-GUIDE.md`, `CLAUDE-SETUP-PROMPT.md`, and
+   everything in `docs/`. Graph view shows how they link.
+3. Obsidian hides dot-folders, so `.claude/agents/` and `.claude/skills/` aren't in the
+   vault. Read those on GitHub or in your editor.
+4. After `npm install` at the event, add `node_modules` under **Settings → Files and links →
+   Excluded files** so package READMEs don't clutter search and graph.
+5. Optional: to let Claude use the `obsidian` CLI (the `obsidian:obsidian-cli` skill), turn it
+   on in **Settings → General → Advanced**.
+
+The format (standard links, GitHub-compatible callouts, `tags` on `docs/` notes) is defined
+in the CLAUDE.md Docs rules, and `node scripts/health-check.mjs` checks it.
+
+## API contract (Swagger / OpenAPI)
+
+[`docs/openapi.json`](docs/openapi.json) is the API contract (OpenAPI 3.1). The planner adds
+each route there before it is built, the implementer builds to it, the tester calls it, the
+reviewer flags drift, and the docs-keeper keeps it in sync. It is empty until the app exists.
+Once the app is scaffolded, serving it with Swagger UI is the first API slice. Until then,
+open it in any OpenAPI viewer, such as Swagger Editor.
+
+## Database (fake data + reports)
+
+Supabase Postgres, provisioned through the Vercel Marketplace (`hackathon-db`, region `iad1`),
+so its env vars are set on the Vercel project and `vercel env pull .env` brings them local:
+`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (browser), `POSTGRES_URL`
+(pooled, for server code) and `POSTGRES_URL_NON_POOLING` (direct, for migrations and the seed).
+SQL lives in [`supabase/`](supabase):
+
+| File | What |
+| --- | --- |
+| [`migrations/0001_primary.sql`](supabase/migrations/0001_primary.sql) | 20 lookup tables, one per coded value set (currencies, countries, sales channels, order statuses, customer segments, invoice statuses, payment methods, carriers, shipment statuses, ticket channels, priorities and statuses, product categories, stock statuses, and more). Each has `code`, `label_en`, `label_he`, `tone`, `sort_order`, `active`. 18 entity and fact tables (customers, products, orders, order items, invoices, payments, shipments, returns, inventory, tickets, web sessions, …) reference them by foreign key. RLS is on for every table. |
+| [`migrations/0002_reports.sql`](supabase/migrations/0002_reports.sql) | `reports` schema: one view per app report (`reports.orders`, `customers`, `invoices`, `shipments`, `tickets`, `products`). Column names are the field keys in [`src/data/reports.ts`](src/data/reports.ts); values are lookup codes, ISO date strings, numbers and booleans. |
+| [`migrations/0003_report_metadata.sql`](supabase/migrations/0003_report_metadata.sql) | `reports.reports` and `reports.report_fields`: the six reports and their fields with en/he labels, type, position, lookup table and currency key. The migration fails if metadata and views disagree. Also `reports.refresh_all()`, `reports.check_lookup_values()` and a nightly pg_cron refresh at 02:15 UTC. No row counts are stored. |
+| [`seed.sql`](supabase/seed.sql) | Synthetic data. `scale=1` (default): 1M customers, 4M orders, ~12M order lines, 10M web sessions. `scale=0.0005`: ~2,000 orders. |
+
+Apply to an empty database. Each file runs in one transaction and stops on the first error;
+drop `-v scale=0.0005` for the full dataset:
+
+```bash
+set -a; source .env; set +a
+for f in supabase/migrations/0001_primary.sql supabase/migrations/0002_reports.sql supabase/migrations/0003_report_metadata.sql; do psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 --single-transaction -f "$f" || break; done
+psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 --single-transaction -v scale=0.0005 -f supabase/seed.sql
+```
+
+- The seed refuses to run when data is already present; its error prints the `truncate` to reseed.
+  It ends with `reports.check_lookup_values()`, which fails if any report value is missing from its lookup.
+- RLS is on with no policies: the browser (publishable key) reads no rows until a slice adds policies.
+- `reports` has no grants to `anon` or `authenticated` and is not exposed through the Supabase
+  REST API. Read it from server code over `POSTGRES_URL`: the catalogue from `reports.reports`
+  and `reports.report_fields`, labels from each field's `lookup_table`, rows from `reports.<id>`.
+  Refresh the materialized reports on demand with `select reports.refresh_all();`.
 
 ## Secrets & safety
 
@@ -116,5 +182,8 @@ No `Authorization` headers or tokens are committed. OAuth sign-in happens per la
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture + full roles & rules |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Architecture Decision Records |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | What changed, per slice |
+| [`docs/openapi.json`](docs/openapi.json) | API contract (OpenAPI 3.1) |
+| [`scripts/health-check.mjs`](scripts/health-check.mjs) | Environment, docs, and API contract health check |
+| [`supabase/`](supabase) | Database migrations (primary + reports schemas) and the fake-data seed |
 | [`.claude/agents/`](.claude/agents) | The seven subagent definitions |
 | [`.mcp.json`](.mcp.json) | Shared MCP servers |

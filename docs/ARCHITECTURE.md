@@ -1,3 +1,9 @@
+---
+tags:
+  - hackathon
+  - architecture
+---
+
 # System Architecture
 
 This repo has two architectures: the **environment** that every laptop runs, and the
@@ -21,13 +27,14 @@ repo root
 ├── CLAUDE-SETUP-PROMPT.md    # one-shot setup, executed by Claude Code
 ├── TEAM-GUIDE.md             # human team guide + 75-min timeline
 ├── .mcp.json                 # shared MCP servers (public URLs, no secrets)
-├── .gitignore / .env.example # secrets stay local; example has empty values
-├── docs/                     # README lives at root; ARCHITECTURE/DECISIONS/CHANGELOG here
+├── .gitignore / .env.example # secrets stay local; example has empty values; .obsidian/ ignored
+├── scripts/health-check.mjs  # one-command check: Vercel, Supabase, docs vault, API contract
+├── docs/                     # ARCHITECTURE, DECISIONS, CHANGELOG, openapi.json (API contract)
 └── .claude/
     ├── settings.json         # shared permissions, enabled plugins, hooks
-    ├── hooks/                # format-prettier.sh (Prettier on Edit/Write)
-    ├── agents/               # the seven subagents (the loop)
-    └── skills/               # /plan, /hackathon-demo-ready, /pr-handoff, ...
+    ├── hooks/                # format-prettier.sh (Prettier on Edit/Write), notify.sh (desktop alert)
+    ├── agents/               # the seven subagents (the loop) and their preloaded skills
+    └── skills/               # /hackathon-demo-ready, /pr-handoff, /caveman, ...
 ```
 
 **MCP servers** ([`.mcp.json`](../.mcp.json)) — public endpoints only; OAuth is a per-laptop
@@ -39,14 +46,19 @@ repo root
 | Supabase | HTTP `https://mcp.supabase.com/mcp` | `/mcp` OAuth | DB, auth, RLS |
 | Playwright | stdio `npx -y @playwright/mcp@latest` | none | UI verification |
 | GitHub | `github@claude-plugins-official` plugin | `/mcp` OAuth | PRs, issues |
-| Obsidian | `obsidian@obsidian-skills` plugin | none | notes (skills only, no MCP) |
+| Obsidian | `obsidian@obsidian-skills` plugin; this repo is the vault | none | docs vault; docs-keeper preloads `obsidian-markdown` (skills only, no MCP) |
 
-Team memory lives in git (`README.md`, `docs/DECISIONS.md`, `docs/CHANGELOG.md`), not in
-one person's private vault.
+Team memory lives in git (`README.md`, `docs/DECISIONS.md`, `docs/CHANGELOG.md`,
+`docs/openapi.json`). The repo itself is the team's Obsidian vault (see
+[Docs in Obsidian](../README.md#docs-in-obsidian)), so nothing lives only in one person's
+private vault. The format rules are in the CLAUDE.md Docs rules.
 
 ---
 
 ## 2. Target app architecture
+
+> [!NOTE]
+> The target app is **Bahir**, an accessible reports product. Its docs are in [docs/bahir/BAHIR.md](bahir/BAHIR.md).
 
 The stack is fixed so no time is lost choosing it; only the product is unknown until the event.
 
@@ -69,7 +81,9 @@ Supabase (Postgres + Auth)
   key (no hardcoded text, no fallback strings). Use logical CSS (`margin-inline-start`, not
   `margin-left`). RTL is verified in the browser, not assumed.
 - **Backend** — server code in Route Handlers or Server Actions; every request body/query
-  validated with zod; auth checked on every non-public route.
+  validated with zod; auth checked on every non-public route. Routes are contract-first: the
+  planner writes them into `docs/openapi.json` (OpenAPI 3.1) before they are built, and the
+  app serves that file with Swagger UI once it is scaffolded.
 - **Data** — Supabase Postgres with RLS on every table; parameterized queries only; no
   string-built SQL.
 - **Secrets** — only in env vars, read on the server; missing env vars fail fast. No
@@ -112,6 +126,21 @@ with `/pr-handoff`, and run `/hackathon-demo-ready` before presenting.
 
 Full definitions live in [`.claude/agents/`](../.claude/agents); this is the summary with the
 Ponytail lens for each.
+
+**Preloaded skills.** Each agent's `skills:` frontmatter injects these skills at startup:
+
+| Agent | Preloads | Why |
+| --- | --- | --- |
+| planner | `ponytail:ponytail` | Plan the smallest demoable slice |
+| implementer | `ponytail:ponytail` | Reuse before adding; minimum code |
+| tester | `caveman` | Short internal report; test files stay plain English |
+| reviewer | `ponytail:ponytail-review`, `caveman` | Ponytail checklist under the 80+ filter; short report |
+| security-reviewer | none | Attack descriptions need full detail |
+| debugger | `ponytail:ponytail`, `caveman` | Smallest root-cause fix; short report; docs stay plain |
+| docs-keeper | `obsidian:obsidian-markdown` | Obsidian-format docs, with standard links instead of wikilinks |
+
+Caveman applies only to reports handed back to the main session. Docs, code, commits, and
+user-facing strings are never written in caveman.
 
 ### planner
 - **Mandate:** turn a goal into the smallest demoable slice. Name exact files, the interfaces

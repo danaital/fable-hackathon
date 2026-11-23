@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "bahir",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "FRANKFURTER_URL=https://api.frankfurter.dev/v1",
+        "BAHIR_DATA_SOURCE=postgres",
+        "POSTGRES_URL=postgres://bahir@localhost:54329/bahir",
+        "npm",
+        "run",
+        "dev"
+      ],
+      "port": 3000
+    }
+  ]
+}

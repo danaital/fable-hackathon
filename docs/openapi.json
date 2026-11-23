@@ -1,0 +1,251 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Hackathon app API",
+    "version": "0.0.0",
+    "description": "Contract-first API for the hackathon app. The planner adds each route here before it is built; the reviewer checks route handlers against it."
+  },
+  "paths": {
+    "/api/reports": {
+      "get": {
+        "summary": "Report catalogue with fields. Never carries a row count.",
+        "responses": {
+          "200": {
+            "description": "The active reports in display order, each with its fields in position order.",
+            "headers": { "x-bahir-data-source": { "$ref": "#/components/headers/DataSource" } },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["reports"],
+                  "properties": { "reports": { "type": "array", "items": { "$ref": "#/components/schemas/Report" } } }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/InvalidRequest" },
+          "503": { "$ref": "#/components/responses/DataSourceUnavailable" }
+        }
+      }
+    },
+    "/api/reports/{id}/rows": {
+      "get": {
+        "summary": "Rows of one report. The size of a report is known only from this response.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "A report id from GET /api/reports.",
+            "schema": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,40}$" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rows keyed by the report's field keys (plus the currency code column of its currency fields).",
+            "headers": { "x-bahir-data-source": { "$ref": "#/components/headers/DataSource" } },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["rows"],
+                  "properties": {
+                    "rows": { "type": "array", "maxItems": 50000, "items": { "$ref": "#/components/schemas/Row" } },
+                    "truncated": { "const": true, "description": "Present only when the report has more rows than the 50,000 returned." }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/InvalidRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "503": { "$ref": "#/components/responses/DataSourceUnavailable" }
+        }
+      }
+    },
+    "/api/lookups/{table}": {
+      "get": {
+        "summary": "Active codes of one lookup table, with en/he labels and badge tone, in display order.",
+        "parameters": [
+          {
+            "name": "table",
+            "in": "path",
+            "required": true,
+            "description": "A field's `lookup` value from GET /api/reports, for example order_statuses.",
+            "schema": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,62}$" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The lookup items ordered by sortOrder.",
+            "headers": { "x-bahir-data-source": { "$ref": "#/components/headers/DataSource" } },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["items"],
+                  "properties": { "items": { "type": "array", "items": { "$ref": "#/components/schemas/LookupItem" } } }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/InvalidRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "503": { "$ref": "#/components/responses/DataSourceUnavailable" }
+        }
+      }
+    },
+    "/api/rates": {
+      "get": {
+        "summary": "Daily reference exchange rates for one base currency, proxied from the rates provider.",
+        "parameters": [
+          {
+            "name": "base",
+            "in": "query",
+            "required": true,
+            "description": "ISO currency code the rates are quoted against (one of the provider codes in RATE_CURRENCIES).",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "symbols",
+            "in": "query",
+            "required": true,
+            "description": "Comma-separated ISO currency codes to return. Must not include `base`.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "description": "Up to 100 comma-separated days, each YYYY-MM-DD (from 1999-01-04 to today UTC) or `latest`.",
+            "schema": { "type": "string", "default": "latest" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rates per requested date. Weekends and holidays return the previous business day, named in `date`.",
+            "headers": {
+              "Cache-Control": {
+                "description": "Immutable for past days; a 5-minute cache when today or `latest` is requested.",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["base", "rates"],
+                  "properties": {
+                    "base": { "type": "string" },
+                    "rates": {
+                      "type": "object",
+                      "description": "Keyed by the requested date (YYYY-MM-DD or `latest`).",
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": ["date", "rates"],
+                        "properties": {
+                          "date": { "type": "string", "description": "The day whose rates were used." },
+                          "rates": { "type": "object", "additionalProperties": { "type": "number" } }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`invalid_query`: a missing or malformed base, symbols or date.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "502": {
+            "description": "`rates_upstream_failed`: the provider failed. Its response body is never forwarded.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "503": {
+            "description": "`rates_not_configured`: FRANKFURTER_URL is not set on the server.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "headers": {
+      "DataSource": {
+        "description": "Where the data came from: `postgres` only when BAHIR_DATA_SOURCE is `postgres`, otherwise the in-memory `generator`. Sent on every response of the report and lookup routes, errors included.",
+        "schema": { "type": "string", "enum": ["postgres", "generator"] }
+      }
+    },
+    "responses": {
+      "InvalidRequest": {
+        "description": "`invalid_report_id` or `invalid_lookup_table` for a malformed path parameter; `invalid_query` for any query parameter (these routes take none).",
+        "headers": { "x-bahir-data-source": { "$ref": "#/components/headers/DataSource" } },
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "NotFound": {
+        "description": "`report_not_found` or `lookup_not_found`: the name is well formed but is not a known report, or not a lookup table named by a report field.",
+        "headers": { "x-bahir-data-source": { "$ref": "#/components/headers/DataSource" } },
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "DataSourceUnavailable": {
+        "description": "`data_source_unavailable`: the primary database is selected but the read failed (or POSTGRES_URL is missing). The server never falls back to generated data in this case.",
+        "headers": { "x-bahir-data-source": { "$ref": "#/components/headers/DataSource" } },
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": ["error"],
+        "properties": { "error": { "type": "string", "description": "Machine-readable error code." } }
+      },
+      "Labels": {
+        "type": "object",
+        "required": ["en", "he"],
+        "properties": { "en": { "type": "string" }, "he": { "type": "string" } }
+      },
+      "Row": {
+        "type": "object",
+        "description": "One report row: lookup codes, ISO date strings, numbers and booleans.",
+        "additionalProperties": { "type": ["string", "number", "boolean", "null"] }
+      },
+      "LookupItem": {
+        "type": "object",
+        "required": ["code", "label", "tone", "sortOrder"],
+        "properties": {
+          "code": { "type": "string" },
+          "label": { "$ref": "#/components/schemas/Labels" },
+          "tone": { "type": "string", "enum": ["success", "warning", "danger", "info", "neutral"] },
+          "sortOrder": { "type": "integer" }
+        }
+      },
+      "ReportField": {
+        "type": "object",
+        "required": ["key", "type", "label", "lookup", "currencyKey"],
+        "properties": {
+          "key": { "type": "string", "description": "The row property that holds this field." },
+          "type": {
+            "type": "string",
+            "enum": ["string", "number", "currency", "percent", "date", "datetime", "boolean", "enum", "status", "country", "email"]
+          },
+          "label": { "$ref": "#/components/schemas/Labels" },
+          "lookup": { "type": ["string", "null"], "description": "Table name for GET /api/lookups/{table}; null when the field has no coded values." },
+          "currencyKey": { "type": ["string", "null"], "description": "For currency fields: the row property holding the ISO currency code." }
+        }
+      },
+      "Report": {
+        "type": "object",
+        "required": ["id", "icon", "tags", "title", "description", "fields"],
+        "properties": {
+          "id": { "type": "string" },
+          "icon": { "type": "string" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "title": { "$ref": "#/components/schemas/Labels" },
+          "description": { "$ref": "#/components/schemas/Labels" },
+          "fields": { "type": "array", "items": { "$ref": "#/components/schemas/ReportField" } }
+        }
+      }
+    }
+  }
+}

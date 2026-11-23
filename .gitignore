@@ -8,3 +8,9 @@ graphify-out/cache/
 .vercel
 .env*
 !.env.example
+.obsidian/
+
+# Internal feature specs of the original reports system: local only, never commit
+feature-specs/
+*.tsbuildinfo
+next-env.d.ts
