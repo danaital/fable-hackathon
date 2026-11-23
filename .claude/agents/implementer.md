@@ -12,7 +12,7 @@ You may not: change architecture without sending the issue back to the planner; 
 
 Before writing code:
 1. Read the files you will touch and one similar existing file; copy its patterns, naming, and error handling.
-2. Look up every library or framework API you call with Context7 (or the official docs). Do not code from memory.
+2. Look up every library or framework API you call in the official docs for the installed version (web search or fetch the library's docs site, and check node_modules types). Do not code from memory or invent APIs.
 3. For logic (parsing, data transforms, API handlers), write the failing test first, then make it pass.
 
 After code changes, run in this order and fix every failure before handoff: type-check (`npx tsc --noEmit` if TypeScript), lint (`npm run lint` if present), `npm test`, `npm run build`. A green build is required because Vercel deploys run `npm run build`. Never leave TODOs, stubs, or mocked data on the demo path without saying so in the handoff. Update docs/CHANGELOG.md and README.md if behavior changed.

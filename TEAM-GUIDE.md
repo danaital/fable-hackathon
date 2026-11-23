@@ -25,7 +25,6 @@ Verified sources used throughout:
 - https://code.claude.com/docs/en/mcp
 - https://vercel.com/docs/agent-resources/vercel-mcp
 - https://supabase.com/docs/guides/ai-tools/mcp
-- https://context7.com/docs/clients/claude-code
 
 Community plugins are labeled as community. They are not official Anthropic releases. Review the repo before you install one.
 
@@ -65,8 +64,8 @@ Suggested split:
 | Role | Owns | Typical plugins |
 | --- | --- | --- |
 | Frontend | UI, components, visual demo path | frontend-design, shadcn skill, Figma if needed, Playwright |
-| Backend / data | API, database, auth | supabase, context7 |
-| AI / prompts | Model calls, prompts, library docs | context7, skill-creator, optional Graphify |
+| Backend / data | API, database, auth | supabase |
+| AI / prompts | Model calls, prompts, library docs | skill-creator, optional Graphify |
 | Demo / pitch | Deploy, README, 2-minute script, merge captain | vercel, github, commit-commands, /hackathon-demo-ready |
 
 Rules:
@@ -105,7 +104,6 @@ claude plugin install code-review@claude-plugins-official --scope project
 claude plugin install commit-commands@claude-plugins-official --scope project
 claude plugin install vercel@claude-plugins-official --scope project
 claude plugin install github@claude-plugins-official --scope project
-claude plugin install context7@claude-plugins-official --scope project
 claude plugin install playwright@claude-plugins-official --scope project
 claude plugin install skill-creator@claude-plugins-official --scope project
 ```
@@ -247,11 +245,11 @@ The committed hook runs Prettier after `Edit` or `Write`. It needs `jq` (`brew i
 
 Shared settings deny reading `.env`, `.env.*`, and `secrets/**`. Copy `.env.example` to a local `.env`. Invite the whole team to one Vercel project and, if needed, one Supabase project. Do not create four separate deployments.
 
-This pack commits `.mcp.json` with official public endpoints only: Vercel (`https://mcp.vercel.com`), Supabase (`https://mcp.supabase.com/mcp`), Context7 OAuth (`https://mcp.context7.com/mcp/oauth`), and Playwright as `npx -y @playwright/mcp@latest`. HTTP entries include `"type": "http"`. There are no `Authorization` headers in the file.
+This pack commits `.mcp.json` with official public endpoints only: Vercel (`https://mcp.vercel.com`), Supabase (`https://mcp.supabase.com/mcp`), and Playwright as `npx -y @playwright/mcp@latest`. HTTP entries include `"type": "http"`. There are no `Authorization` headers in the file.
 
 GitHub is not in `.mcp.json`. The official documented `claude mcp add` for GitHub uses a personal access token in a header, which must never be committed. Use the official `github@claude-plugins-official` plugin and authenticate with `/mcp`.
 
-Official Vercel, Context7, Playwright, and Supabase plugins may also start MCP servers. Do not run `claude mcp add` for a name that already exists. If the same name is defined in more than one scope, keep the project `.mcp.json` entry and disable the duplicate in `/mcp`. Docs: https://code.claude.com/docs/en/mcp
+Official Vercel, Playwright, and Supabase plugins may also start MCP servers. Do not run `claude mcp add` for a name that already exists. If the same name is defined in more than one scope, keep the project `.mcp.json` entry and disable the duplicate in `/mcp`. Docs: https://code.claude.com/docs/en/mcp
 
 ## 10. How the agent team works
 

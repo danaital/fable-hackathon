@@ -12,7 +12,7 @@
 
 1. Start in /plan. Do not write feature code until the plan is accepted.
 2. Work in small slices. One slice at a time.
-3. Use Context7 (or say "use context7") before coding against a library API.
+3. Before coding against a library API, check the official docs for the installed version (web search or fetch the library's docs site, and check node_modules types). Never invent an API.
 4. After implementation, run tests and the app. If there is a UI, verify with Playwright or a real browser.
 5. Then ask the reviewer subagent to review. Only report issues with confidence 80+.
 6. If review or tests find a bug, the debugger fixes it and the tester re-runs.

@@ -12,7 +12,6 @@ Official sources for every command below:
 - Hooks: https://code.claude.com/docs/en/hooks-guide
 - Vercel MCP: https://vercel.com/docs/agent-resources/vercel-mcp
 - Supabase MCP: https://supabase.com/docs/guides/ai-tools/mcp
-- Context7 MCP: https://context7.com/docs/clients/claude-code and https://context7.com/docs/resources/all-clients
 - Playwright MCP: https://code.claude.com/docs/en/mcp-quickstart
 - shadcn skills: https://ui.shadcn.com/docs/skills
 - Vercel agent skills: https://github.com/vercel-labs/agent-skills
@@ -25,9 +24,9 @@ Do not invent plugin names, marketplaces, MCP URLs, or CLI flags. If a command i
 
 - Be idempotent. If a marketplace, plugin, MCP server, skill, hook, or file is already present and correct, leave it and move on. Treat "already installed" as success.
 - Ask before anything destructive: overwriting a customized `CLAUDE.md`, `.claude/settings.json`, `.mcp.json`, hook, or skill; removing a plugin or MCP server; uninstalling software; or deleting files the human wrote.
-- Never commit secrets. Never write API keys, tokens, passwords, or `Authorization` header values into git, `.mcp.json`, `.claude/settings.json`, or any committed file. If a token is required, use an environment variable reference such as `${CONTEXT7_API_KEY}` in a local or user-scope config only, or tell the human to sign in with `/mcp`.
+- Never commit secrets. Never write API keys, tokens, passwords, or `Authorization` header values into git, `.mcp.json`, `.claude/settings.json`, or any committed file. If a token is required, use an environment variable reference such as `${SOME_API_KEY}` in a local or user-scope config only, or tell the human to sign in with `/mcp`.
 - Prefer `--scope project` for team plugins and MCP servers so the repo stays the source of truth.
-- Official plugins may start their own MCP servers. This pack also commits official HTTP or stdio endpoints in `.mcp.json`. After installs, run `claude mcp list`. Do not run `claude mcp add` for a name that already exists. If Claude Code warns that the same name is defined in more than one scope, do not delete files. Report the conflict and ask the human to keep one definition: prefer the project `.mcp.json` entry for `vercel`, `supabase`, `context7`, and `playwright`, and disable the duplicate in `/mcp` if needed.
+- Official plugins may start their own MCP servers. This pack also commits official HTTP or stdio endpoints in `.mcp.json`. After installs, run `claude mcp list`. Do not run `claude mcp add` for a name that already exists. If Claude Code warns that the same name is defined in more than one scope, do not delete files. Report the conflict and ask the human to keep one definition: prefer the project `.mcp.json` entry for `vercel`, `supabase`, and `playwright`, and disable the duplicate in `/mcp` if needed.
 - GitHub MCP is not in `.mcp.json`. The official documented `claude mcp add` for GitHub uses a personal access token in an `Authorization` header, which must never be committed. Install `github@claude-plugins-official` instead, and let the human authenticate with `/mcp`.
 - Community plugins are optional and not official Anthropic releases. Ask before installing any of them.
 - On Windows, prefer Git Bash for the Prettier hook. `claude plugin` and `claude mcp` can run in PowerShell or Git Bash.
@@ -100,7 +99,6 @@ claude plugin install code-review@claude-plugins-official --scope project
 claude plugin install commit-commands@claude-plugins-official --scope project
 claude plugin install vercel@claude-plugins-official --scope project
 claude plugin install github@claude-plugins-official --scope project
-claude plugin install context7@claude-plugins-official --scope project
 claude plugin install playwright@claude-plugins-official --scope project
 claude plugin install skill-creator@claude-plugins-official --scope project
 ```
@@ -135,7 +133,6 @@ Ensure `.mcp.json` in the project root matches this pack (public URLs only, `typ
 
 - `vercel` — HTTP, `https://mcp.vercel.com`
 - `supabase` — HTTP, `https://mcp.supabase.com/mcp`
-- `context7` — HTTP, `https://mcp.context7.com/mcp/oauth` (OAuth URL, so no API key is committed)
 - `playwright` — stdio, `npx -y @playwright/mcp@latest`
 
 If `.mcp.json` is missing or a verified server is missing, add only the missing server with one of these official commands:
@@ -143,11 +140,10 @@ If `.mcp.json` is missing or a verified server is missing, add only the missing 
 ```bash
 claude mcp add --scope project --transport http vercel https://mcp.vercel.com
 claude mcp add --scope project --transport http supabase "https://mcp.supabase.com/mcp"
-claude mcp add --scope project --transport http context7 https://mcp.context7.com/mcp/oauth
 claude mcp add --scope project playwright -- npx -y @playwright/mcp@latest
 ```
 
-Do not add GitHub with `claude mcp add`. Do not pass `--header "Authorization: ..."` into a project-scope command. If the human later wants a Context7 API key instead of OAuth, that belongs in local or user scope only, never in the committed file.
+Do not add GitHub with `claude mcp add`. Do not pass `--header "Authorization: ..."` into a project-scope command. 
 
 Then run:
 
@@ -247,7 +243,7 @@ Then print the short list of steps only a human can do, and, if anything failed 
 ### Steps only a human can do
 
 1. Trust this project folder in Claude Code, if you have not already, so allow rules, hooks, and project MCP approvals apply.
-2. In an interactive session, run `/mcp`. Approve the project servers from `.mcp.json`. Sign in with OAuth to Vercel, Supabase, Context7, and the official GitHub plugin. Playwright does not need an account.
+2. In an interactive session, run `/mcp`. Approve the project servers from `.mcp.json`. Sign in with OAuth to Vercel, Supabase, and the official GitHub plugin. Playwright does not need an account.
 3. Log in to Claude or Console with your own credits. Event API credits stay in that login, never in git.
 4. Copy `.env.example` to `.env` if needed and add any local app secrets yourself. Do not commit `.env`, API keys, or tokens.
 5. Accept any Vercel or Supabase team invites, and use one shared Vercel project and, if needed, one shared Supabase project.
@@ -264,7 +260,6 @@ claude plugin install code-review@claude-plugins-official --scope project
 claude plugin install commit-commands@claude-plugins-official --scope project
 claude plugin install vercel@claude-plugins-official --scope project
 claude plugin install github@claude-plugins-official --scope project
-claude plugin install context7@claude-plugins-official --scope project
 claude plugin install playwright@claude-plugins-official --scope project
 claude plugin install skill-creator@claude-plugins-official --scope project
 ```
@@ -278,7 +273,6 @@ Same work as slash commands, if you prefer to paste inside a Claude Code session
 /plugin install commit-commands@claude-plugins-official
 /plugin install vercel@claude-plugins-official
 /plugin install github@claude-plugins-official
-/plugin install context7@claude-plugins-official
 /plugin install playwright@claude-plugins-official
 /plugin install skill-creator@claude-plugins-official
 /mcp
