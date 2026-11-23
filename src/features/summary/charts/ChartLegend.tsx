@@ -6,7 +6,7 @@ import { Chip } from "@/components/ui";
 import { useI18n } from "@/i18n";
 import type { SeriesStyle } from "../palette";
 import type { LegendItem } from "./model";
-import { LegendButton, LegendList, LegendRow, SvgDefs, Swatch, SwatchRect, SwatchSvg } from "./primitives";
+import { LegendButton, LegendDetail, LegendList, LegendRow, SvgDefs, Swatch, SwatchRect, SwatchSvg } from "./primitives";
 
 const SWATCH = 16;
 const SWATCH_CENTER = SWATCH / 2;
@@ -73,6 +73,7 @@ export function ChartLegend({ title, items, column, marker, onToggle }: ChartLeg
           >
             <SeriesSwatch look={item.style} marker={marker} />
             {item.isOther ? <Chip>{item.label}</Chip> : item.label}
+            {item.detail ? <LegendDetail>{item.detail}</LegendDetail> : null}
           </LegendButton>
         </LegendRow>
       ))}

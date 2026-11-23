@@ -56,7 +56,8 @@ interface SearchProps {
 
 interface ToolbarProps {
   search?: SearchProps;
-  onRefresh: () => void;
+  /** Absent for lists that follow browser storage live and have nothing to reload. */
+  onRefresh?: () => void;
   /** The primary action, between the search and Refresh. */
   children?: ReactNode;
 }
@@ -80,10 +81,12 @@ export function Toolbar({ search, onRefresh, children }: ToolbarProps) {
         </SearchSlot>
       ) : null}
       {children}
-      <Button type="button" onClick={onRefresh}>
-        <RefreshCw size={ICON_SIZE} aria-hidden />
-        {t("admin.refresh")}
-      </Button>
+      {onRefresh ? (
+        <Button type="button" onClick={onRefresh}>
+          <RefreshCw size={ICON_SIZE} aria-hidden />
+          {t("admin.refresh")}
+        </Button>
+      ) : null}
     </Stack>
   );
 }

@@ -3,7 +3,7 @@
 import type { LucideIcon } from "lucide-react";
 import { useId, useState, type FormEvent, type ReactNode } from "react";
 import styled, { css } from "styled-components";
-import { Button, Dialog, Heading, Input, Notice, Paragraph, Stack, VisuallyHidden, useToast } from "@/components/ui";
+import { Button, Dialog, Field, Heading, Input, Notice, Paragraph, Select, Stack, VisuallyHidden, useToast } from "@/components/ui";
 import { RequireRole, type Role } from "@/features/auth";
 import { useI18n, type I18nKey } from "@/i18n";
 import type { LocalStore } from "@/lib/store";
@@ -108,6 +108,47 @@ export function IconButton({ label, icon: Icon, onClick, disabled }: IconButtonP
     </Button>
   );
 }
+
+const FullSelect = styled(Select)`
+  inline-size: 100%;
+`;
+
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
+interface SelectFieldProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: readonly SelectOption[];
+  /** Text of the empty first choice. Absent: there is no empty choice. */
+  placeholder?: string;
+  disabled?: boolean;
+  hint?: string;
+}
+
+/** A labeled list of choices. */
+export function SelectField({ label, value, onChange, options, placeholder, disabled, hint }: SelectFieldProps) {
+  return (
+    <Field label={label} hint={hint}>
+      {(id) => (
+        <FullSelect id={id} value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)}>
+          {placeholder === undefined ? null : <Option value="">{placeholder}</Option>}
+          {options.map((option) => (
+            <Option key={option.value} value={option.value}>
+              {option.label}
+            </Option>
+          ))}
+        </FullSelect>
+      )}
+    </Field>
+  );
+}
+
+/** Case-insensitive "contains" over everything a row shows, for the search boxes. */
+export const matchesQuery = (query: string, values: readonly (string | number | null)[]): boolean => values.join(" ").toLowerCase().includes(query.trim().toLowerCase());
 
 /** Text in one language inside a page of the other: set `dir` and `lang` on it. Also keeps technical values left to right. */
 export const LangText = styled.span`

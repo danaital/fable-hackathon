@@ -1,5 +1,5 @@
-import { Unfinished } from "@/features/admin/tools/Unfinished";
+import { ImportExportScreen } from "@/features/admin/tools/ImportExportScreen";
 
 export default function Page() {
-  return <Unfinished screen="importExport" />;
+  return <ImportExportScreen />;
 }

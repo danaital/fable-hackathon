@@ -1,5 +1,5 @@
-import { Unfinished } from "@/features/admin/tools/Unfinished";
+import { TranslationsScreen } from "@/features/admin/tools/TranslationsScreen";
 
 export default function Page() {
-  return <Unfinished screen="translations" />;
+  return <TranslationsScreen />;
 }

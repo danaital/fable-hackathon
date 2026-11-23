@@ -40,7 +40,18 @@ interface ItemMap {
 export type ReportConfig = { [K in SectionName]: ItemMap[K][] };
 
 export type FileError = "empty" | "tooLarge" | "invalidJson" | "wrongShape" | "tooManyItems";
-export type IssueCode = "schema" | "identifier" | "duplicate" | "unknownField" | "unknownEntity" | "unknownColumn" | "sameEntity" | "aliasTaken" | "tooLong";
+export type IssueCode =
+  | "schema"
+  | "identifier"
+  | "duplicate"
+  | "unknownField"
+  | "unknownEntity"
+  | "unknownColumn"
+  | "sameEntity"
+  | "aliasTaken"
+  | "tooLong"
+  | "translationKey"
+  | "noText";
 /** `path` is where in the item; `detail` is the offending value or the validator's message. Both are shown as text. */
 export interface PlanIssue {
   code: IssueCode;
@@ -70,7 +81,7 @@ export interface ImportContext {
   locale: Locale;
 }
 
-const ZOD_MESSAGES: Record<Locale, z.core.$ZodErrorMap> = { en: zodEn().localeError, he: zodHe().localeError };
+export const ZOD_MESSAGES: Record<Locale, z.core.$ZodErrorMap> = { en: zodEn().localeError, he: zodHe().localeError };
 // Properties whose text names a field of the report, anywhere inside a widget, a chart or a view state.
 const FIELD_REF_KEYS = new Set(["field", "dataField", "groupByField", "labelField", "dateField", "groupBy", "requireSingleValueOn", "columns", "compareField"]);
 const SORT_LIST_KEY = "sorts";
@@ -118,7 +129,7 @@ function sectionLists(kind: ImportKind, value: unknown): Result<SectionLists, Fi
 type Parsed<T> = { value: T; issues: [] } | { value: null; issues: PlanIssue[] };
 
 /** `skip` drops the leading path segments a wrapper added. A failed identifier pattern gets its own, clearer code. */
-function fromZod<T>(result: z.ZodSafeParseResult<T>, skip = 0): Parsed<T> {
+export function fromZod<T>(result: z.ZodSafeParseResult<T>, skip = 0): Parsed<T> {
   if (result.success) return { value: result.data, issues: [] };
   return {
     value: null,

@@ -6,6 +6,7 @@ import { Th } from "@/components/ui";
 // Styled primitives of the chart cards, next to the shared ones in ../primitives. Feature components use no raw tags.
 
 const INSIGHT_STRIPE = "4px";
+const TOOLTIP_MIN_WIDTH = "140px";
 const TOOLTIP_MAX_WIDTH = "280px";
 
 /** Chart (or its table) with its legend: stacked, or side by side for an enlarged pie where there is room. */
@@ -21,19 +22,31 @@ export const ChartLayout = styled.div<{ $side?: boolean }>`
   `}
 `;
 
-/** Inverted surface, so the tooltip stands out in both themes: dark with light text in the light theme. */
+/** A small card above the chart: the same surface as the page's cards, lifted by its border and shadow in both themes. */
 export const TooltipBox = styled.div`
-  ${({ theme: { color, font, radius, space } }) => css`
+  ${({ theme: { color, font, radius, shadow, space } }) => css`
     display: flex;
     flex-direction: column;
     gap: ${space.xs};
+    min-inline-size: ${TOOLTIP_MIN_WIDTH};
     max-inline-size: ${TOOLTIP_MAX_WIDTH};
     padding: ${space.sm} ${space.md};
+    border: 1px solid ${color.border};
     border-radius: ${radius.md};
-    background: ${color.text};
-    color: ${color.surface};
+    background: ${color.surface};
+    box-shadow: ${shadow.md};
+    color: ${color.text};
     font-size: ${font.size.sm};
     text-align: start;
+  `}
+`;
+
+export const TooltipTitle = styled.div`
+  ${({ theme: { color, font, space } }) => css`
+    padding-block-end: ${space.xs};
+    border-block-end: 1px solid ${color.border};
+    font-weight: ${font.weight.medium};
+    overflow-wrap: anywhere;
   `}
 `;
 
@@ -45,21 +58,32 @@ export const TooltipLine = styled.div`
   `}
 `;
 
+export const TooltipName = styled.span`
+  ${({ theme: { color } }) => css`
+    min-inline-size: 0;
+    color: ${color.textMuted};
+    overflow-wrap: anywhere;
+  `}
+`;
+
+/** Numbers line up at the end of the card and read left-to-right in both languages. */
+export const TooltipValue = styled.span`
+  ${({ theme: { font } }) => css`
+    margin-inline-start: auto;
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-variant-numeric: tabular-nums;
+    font-weight: ${font.weight.medium};
+    white-space: nowrap;
+  `}
+`;
+
 export const SwatchSvg = styled.svg`
   inline-size: 100%;
   block-size: 100%;
 `;
 export const SwatchRect = styled.rect``;
 export const SvgDefs = styled.defs``;
-
-/** A pie slice's two-line label: value, then share. */
-export const SliceLabel = styled.text`
-  ${({ theme: { color, font } }) => css`
-    fill: ${color.text};
-    font-size: ${font.size.xs};
-  `}
-`;
-export const SliceLine = styled.tspan``;
 
 export const InsightBox = styled.aside`
   ${({ theme: { color, radius, space } }) => css`
@@ -85,10 +109,12 @@ export const HeadCell = styled(Th)<{ $end?: boolean }>`
 
 // Own copies of the layout pieces the cards need, so this folder does not depend on files that are still changing.
 
-const SWATCH_SIZE = "16px";
-const LEGEND_MAX_HEIGHT = "220px";
-const PIE_LEGEND_WIDTH = "200px";
-const SKELETON_HEIGHT = "240px";
+const SWATCH_SIZE = "14px";
+/** A legend row on a pointer device; touch screens get the full touch height. */
+const LEGEND_ROW_HEIGHT = "28px";
+const LEGEND_MAX_HEIGHT = "260px";
+const PIE_LEGEND_WIDTH = "220px";
+const SKELETON_HEIGHT = "280px";
 
 export const ChartSection = styled.section`
   ${({ theme: { space } }) => css`
@@ -131,6 +157,10 @@ export const ChartBox = styled.div<{ $height: number }>`
     min-inline-size: 0;
     block-size: ${$height}px;
     font-size: ${font.size.xs};
+    /* A label at the very edge of the drawing runs into the card's padding instead of being cut off. */
+    & .recharts-surface {
+      overflow: visible;
+    }
   `}
 `;
 
@@ -138,7 +168,7 @@ export const LegendList = styled.ul<{ $column?: boolean }>`
   ${({ theme: { space }, $column }) => css`
     display: flex;
     flex-flow: ${$column ? "column nowrap" : "row wrap"};
-    gap: ${space.xs};
+    gap: 0 ${space.xs};
     margin: 0;
     padding: 0;
     list-style: none;
@@ -155,19 +185,19 @@ export const LegendButton = styled.button`
     display: inline-flex;
     align-items: center;
     gap: ${space.sm};
-    min-block-size: ${size.control};
+    min-block-size: ${LEGEND_ROW_HEIGHT};
     padding-block: 0;
     padding-inline: ${space.sm};
-    border: 1px solid transparent;
+    border: 0;
     border-radius: ${radius.sm};
     background: transparent;
     color: ${color.text};
     font: inherit;
-    font-size: ${font.size.sm};
+    font-size: ${font.size.xs};
     text-align: start;
     cursor: pointer;
     &:hover {
-      border-color: ${color.border};
+      background: ${color.surfaceAlt};
     }
     &[aria-pressed="true"] {
       color: ${color.textMuted};
@@ -179,6 +209,16 @@ export const LegendButton = styled.button`
     @media (max-width: ${bp.mobile}) {
       min-block-size: ${size.touch};
     }
+  `}
+`;
+
+/** What follows a legend label: a pie slice's part of the whole. */
+export const LegendDetail = styled.span`
+  ${({ theme: { color } }) => css`
+    color: ${color.textMuted};
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-variant-numeric: tabular-nums;
   `}
 `;
 

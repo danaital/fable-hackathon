@@ -1,5 +1,5 @@
-import { AdminComingSoon } from "@/features/admin/AdminShell";
+import { PasswordRequestsScreen } from "@/features/admin/PasswordRequestsScreen";
 
 export default function AdminPasswordRequestsPage() {
-  return <AdminComingSoon titleKey="admin.nav.passwordRequests" />;
+  return <PasswordRequestsScreen />;
 }

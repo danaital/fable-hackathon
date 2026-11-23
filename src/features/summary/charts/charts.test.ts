@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
-import type { ReportDef } from "@/data/types";
+import { REPORTS, getRows } from "@/data/reports";
+import { BUILT_IN_SUMMARY } from "@/data/summary";
+import type { FieldType, ReportDef } from "@/data/types";
 import { en } from "@/i18n/en";
 import type { I18nKey } from "@/i18n";
 import { OTHER_KEY, type ChartData } from "../chartData";
-import { chartStats, pruneHidden, toggleHidden } from "../chartView";
-import { summaryConfigSchema } from "../config";
+import { PIE_TYPES, chartStats, pruneHidden, toggleHidden } from "../chartView";
+import { summaryConfigSchema, type ChartConfig } from "../config";
 import { defaultCharts } from "./defaults";
 import { chartSubtitle, describeChart } from "./describe";
 import { buildModel, computeChart, isEmpty } from "./model";
+import { DATE_TYPES, TREND_TYPES } from "./timeStep";
 
 const t = (key: I18nKey, vars: Record<string, string | number> = {}) =>
   en[key].replace(/\{(\w+)\}/g, (match, name: string) => (name in vars ? String(vars[name]) : match));
@@ -126,5 +129,29 @@ describe("computeChart", () => {
   it("withholds the chart when its display condition is not met", () => {
     const chart = chartOf({ type: "bar", dataField: "status", displayCondition: { rules: [{ subject: "rowCount", operator: "greaterThanOrEqual", value: 5 }] } });
     expect(computeChart({ ...base, chart, rows: [{ status: "late" }] })).toEqual({ kind: "withheld", outcome: "notMet" });
+  });
+});
+
+describe("built-in charts", () => {
+  const CATEGORY_TYPES: ReadonlySet<FieldType> = new Set(["enum", "status", "country"]);
+  const NUMBER_TYPES: ReadonlySet<FieldType> = new Set(["number", "percent", "currency"]);
+
+  it.each(REPORTS.map((report) => [report.id, report] as const))("%s has a varied set, and no chart of a single bar on the seeded rows", (id, report) => {
+    const charts = BUILT_IN_SUMMARY[id].charts;
+    const typeOf = (key: string): FieldType => report.fields.find((field) => field.key === key)?.type ?? "string";
+    const has = (test: (chart: ChartConfig) => boolean) => charts.some(test);
+    // A trend over time, a breakdown by a status or category, a share, two dimensions, a numeric field.
+    expect(has((chart) => TREND_TYPES.has(chart.type) && DATE_TYPES.has(typeOf(chart.groupBy ?? chart.dataField)))).toBe(true);
+    expect(has((chart) => !chart.series && !PIE_TYPES.has(chart.type) && CATEGORY_TYPES.has(typeOf(chart.dataField)))).toBe(true);
+    expect(has((chart) => PIE_TYPES.has(chart.type))).toBe(true);
+    expect(has((chart) => chart.series !== undefined)).toBe(true);
+    expect(has((chart) => NUMBER_TYPES.has(typeOf(chart.dataField)))).toBe(true);
+
+    const rows = getRows(id) ?? [];
+    for (const chart of charts) {
+      const result = computeChart({ chart, rows, fields: report.fields, now: new Date(), labelFor: (key) => key, title: "t" });
+      // A money chart over rows that mix currencies shows a notice instead of data; that is not a one-bar chart.
+      if (result.kind === "data") expect(result.data.categories.length, `${id}/${chart.id}`).toBeGreaterThanOrEqual(2);
+    }
   });
 });

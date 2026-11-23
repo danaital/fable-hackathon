@@ -1,5 +1,5 @@
-import { Unfinished } from "@/features/admin/tools/Unfinished";
+import { ReportEntitiesScreen } from "@/features/admin/tools/ReportEntitiesScreen";
 
 export default function Page() {
-  return <Unfinished screen="reportEntities" />;
+  return <ReportEntitiesScreen />;
 }

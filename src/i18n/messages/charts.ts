@@ -10,6 +10,11 @@ const en = {
   "charts.legend.itemHidden": "{label} in {title}, hidden",
   "charts.tooltip.point": "Point {n}",
   "charts.tooltip.xy": "X: {x}, Y: {y}",
+  "charts.total": "Total",
+  "charts.note.step.month": "Grouped by month: the rows cover a short period",
+  "charts.note.step.week": "Grouped by week, each from its Monday: the rows cover a short period",
+  "charts.note.step.day": "Grouped by day: the rows cover a short period",
+  "charts.note.bars": "Shown as bars: one point alone makes no trend",
 } as const;
 
 const he: Record<keyof typeof en, string> = {
@@ -24,6 +29,11 @@ const he: Record<keyof typeof en, string> = {
   "charts.legend.itemHidden": "{label} בתרשים {title}, מוסתר",
   "charts.tooltip.point": "נקודה {n}",
   "charts.tooltip.xy": "X: {x}, Y: {y}",
+  "charts.total": "סה״כ",
+  "charts.note.step.month": "מקובץ לפי חודש: השורות מכסות תקופה קצרה",
+  "charts.note.step.week": "מקובץ לפי שבוע, החל מיום שני: השורות מכסות תקופה קצרה",
+  "charts.note.step.day": "מקובץ לפי יום: השורות מכסות תקופה קצרה",
+  "charts.note.bars": "מוצג כעמודות: נקודה אחת בלבד אינה יוצרת מגמה",
 };
 
 export const chartsMessages = { en, he };

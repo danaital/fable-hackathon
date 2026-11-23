@@ -8,6 +8,10 @@ import { MAX_IMPORT_BYTES } from "./configImport";
 const REVOKE_DELAY_MS = 1000;
 const JSON_TYPE = "application/json";
 const JSON_INDENT = 2;
+const ISO_DAY_LENGTH = 10;
+
+/** Today as YYYY-MM-DD (UTC), for file names and release dates. */
+export const isoToday = (): string => new Date().toISOString().slice(0, ISO_DAY_LENGTH);
 
 const FileInput = styled(Input)`
   ${({ theme: { space } }) => css`
@@ -19,7 +23,7 @@ export type FileReadError = "tooLarge" | "unreadable";
 
 interface FilePickerProps {
   label: string;
-  onText: (text: string) => void;
+  onText: (text: string, fileName: string) => void;
   onError: (error: FileReadError) => void;
 }
 
@@ -31,7 +35,7 @@ export function FilePicker({ label, onText, onError }: FilePickerProps) {
     if (!file) return;
     if (file.size > MAX_IMPORT_BYTES) return onError("tooLarge");
     const reader = new FileReader();
-    reader.onload = () => (typeof reader.result === "string" ? onText(reader.result) : onError("unreadable"));
+    reader.onload = () => (typeof reader.result === "string" ? onText(reader.result, file.name) : onError("unreadable"));
     reader.onerror = () => onError("unreadable");
     reader.readAsText(file);
   };

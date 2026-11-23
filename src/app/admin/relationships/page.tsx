@@ -1,5 +1,5 @@
-import { Unfinished } from "@/features/admin/tools/Unfinished";
+import { RelationshipsScreen } from "@/features/admin/tools/RelationshipsScreen";
 
 export default function Page() {
-  return <Unfinished screen="relationships" />;
+  return <RelationshipsScreen />;
 }

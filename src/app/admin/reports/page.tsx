@@ -1,5 +1,5 @@
-import { AdminComingSoon } from "@/features/admin/AdminShell";
+import { ReportsScreen } from "@/features/admin/ReportsScreen";
 
 export default function AdminReportsPage() {
-  return <AdminComingSoon titleKey="admin.nav.reports" />;
+  return <ReportsScreen />;
 }

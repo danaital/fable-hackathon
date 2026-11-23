@@ -1,5 +1,5 @@
-import { AdminComingSoon } from "@/features/admin/AdminShell";
+import { RolesScreen } from "@/features/admin/RolesScreen";
 
 export default function AdminRolesPage() {
-  return <AdminComingSoon titleKey="admin.nav.roles" />;
+  return <RolesScreen />;
 }

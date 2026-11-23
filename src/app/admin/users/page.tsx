@@ -1,5 +1,5 @@
-import { AdminComingSoon } from "@/features/admin/AdminShell";
+import { UsersScreen } from "@/features/admin/UsersScreen";
 
 export default function AdminUsersPage() {
-  return <AdminComingSoon titleKey="admin.nav.users" />;
+  return <UsersScreen />;
 }

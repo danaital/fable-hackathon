@@ -11,8 +11,8 @@ import { useSummaryConfig } from "./summaryConfig";
 import { useExplore, useSummaryRows, useSummaryTools, visibleItems } from "./useSummary";
 import { VisibilityDialog } from "./VisibilityDialog";
 
-/** Narrowest a chart card gets before the grid drops a column; a phone always gets one column. */
-const CARD_MIN_WIDTH = "360px";
+/** Narrowest a chart card gets before the grid drops a column, wide enough for a readable axis; a phone always gets one column. */
+const CARD_MIN_WIDTH = "400px";
 
 /** The report's charts, calculated in the browser from the same rows as the table. The view decides which are shown. */
 export function ChartGrid() {

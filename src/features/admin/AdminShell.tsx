@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import styled, { css } from "styled-components";
-import { Heading, Link, Notice, Select, Stack, Text, VisuallyHidden } from "@/components/ui";
+import { Heading, Link, Select, Stack, VisuallyHidden } from "@/components/ui";
 import { DemoBanner } from "@/features/auth/UserMenu";
 import { ADMIN_AREA_MIN_ROLE } from "@/features/auth/roles";
 import { RequireRole, useSession } from "@/features/auth/session";
@@ -100,21 +100,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <Stack $gap="lg">{children}</Stack>
         </Layout>
       </RequireRole>
-    </Stack>
-  );
-}
-
-/** Placeholder for an admin screen that is not built yet. */
-export function AdminComingSoon({ titleKey }: { titleKey: (typeof ADMIN_NAV)[number]["labelKey"] }) {
-  const { t } = useI18n();
-  return (
-    <Stack $gap="md">
-      <Heading as="h2" $size="lg">
-        {t(titleKey)}
-      </Heading>
-      <Notice role="status">
-        <Text>{t("admin.comingSoon")}</Text>
-      </Notice>
     </Stack>
   );
 }

@@ -5,9 +5,11 @@ import { evaluateCondition, type ConditionOutcome } from "../conditions";
 import type { ChartConfig, ChartType } from "../config";
 import { assignSlots, seriesStyle, type SeriesStyle } from "../palette";
 import { SummaryNotice, type Fields, type NoticeCode, type Rows } from "../values";
+import { MIN_TREND_POINTS, TREND_TYPES, timeView, type TimeStep } from "./timeStep";
 
 export type ChartResult =
-  | { kind: "data"; data: ChartData }
+  /** `step` is the finer time step a short trend was regrouped by, null when the chart is grouped as configured. */
+  | { kind: "data"; data: ChartData; step: TimeStep | null }
   | { kind: "withheld"; outcome: Exclude<ConditionOutcome, "met"> }
   | { kind: "notice"; code: NoticeCode; detail: string };
 
@@ -25,16 +27,24 @@ export function computeChart(input: ComputeInput): ChartResult {
   const outcome = evaluateCondition(input.chart.displayCondition, input.rows);
   if (outcome !== "met") return { kind: "withheld", outcome };
   try {
-    return { kind: "data", data: buildChartData(input) };
+    const { chart, rows, step } = timeView(input);
+    return { kind: "data", data: buildChartData({ ...input, chart, rows }), step };
   } catch (error) {
     if (error instanceof SummaryNotice) return { kind: "notice", code: error.code, detail: error.detail };
     throw error;
   }
 }
 
+/** The type a chart is drawn as: a line or area left with a single category has no trend to draw and becomes bars. */
+export function drawnType(type: ChartType, data: ChartData): ChartType {
+  return TREND_TYPES.has(type) && data.categories.length < MIN_TREND_POINTS ? "bar" : type;
+}
+
 export interface LegendItem extends LegendEntry {
   hidden: boolean;
   style: SeriesStyle;
+  /** Shown after the label: a pie slice's part of the whole. */
+  detail?: string;
 }
 
 export interface ModelSeries {

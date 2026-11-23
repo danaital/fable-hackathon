@@ -15,8 +15,9 @@ import type { ExploreInput, SummaryRows, SummaryTools } from "../useSummary";
 import type { NoticeCode } from "../values";
 import { ChartView } from "./ChartView";
 import { chartSubtitle } from "./describe";
-import { buildModel, computeChart, isEmpty } from "./model";
+import { buildModel, computeChart, drawnType, isEmpty } from "./model";
 import { ChartSkeleton } from "./primitives";
+import type { TimeStep } from "./timeStep";
 
 const ICON_SIZE = 18;
 const TYPE_ICONS: Record<ChartType, LucideIcon> = {
@@ -31,6 +32,8 @@ const TYPE_ICONS: Record<ChartType, LucideIcon> = {
   doughnut: Donut,
 };
 const NOTICE_KEYS: Record<NoticeCode, I18nKey> = { mixedCurrency: "summary.notice.mixedCurrency" };
+/** Why a trend is grouped by a finer step than configured. A trend is never regrouped into years. */
+const STEP_NOTES: Record<Exclude<TimeStep, "year">, I18nKey> = { month: "charts.note.step.month", week: "charts.note.step.week", day: "charts.note.step.day" };
 
 interface BoundaryProps {
   chartId: string;
@@ -91,6 +94,8 @@ export function ChartCard({ chart, rows, busy, now, tools, onExplore }: ChartCar
     [input, chart, report.fields, now, labelFor, title],
   );
   const data = result?.kind === "data" && !isEmpty(result.data) ? result.data : null;
+  const step = result?.kind === "data" ? result.step : null;
+  const type = data ? drawnType(chart.type, data) : chart.type;
   // A hidden item that left the data is forgotten, so it is visible when it comes back.
   const shownHidden = data ? pruneHidden(hidden, legendEntries(data, chart.type).map((entry) => entry.key)) : hidden;
   if (shownHidden !== hidden) setHidden(shownHidden);
@@ -129,6 +134,8 @@ export function ChartCard({ chart, rows, busy, now, tools, onExplore }: ChartCar
               {chartSubtitle({ chart, fieldLabel: tools.fieldLabel, t })}
             </Text>
             {chart.ignoreActiveFilters ? <Badge $tone="info">{t("charts.ignoresFilters")}</Badge> : null}
+            {data && step && step !== "year" ? <Badge $tone="info">{t(STEP_NOTES[step])}</Badge> : null}
+            {type === chart.type ? null : <Badge $tone="info">{t("charts.note.bars")}</Badge>}
           </Stack>
           {result === null ? <ChartSkeleton aria-hidden /> : null}
           {result?.kind === "withheld" ? (
@@ -143,7 +150,7 @@ export function ChartCard({ chart, rows, busy, now, tools, onExplore }: ChartCar
           ) : null}
           {result?.kind === "data" && !data ? <Notice role="status">{t("summary.noData")}</Notice> : null}
           {data && model ? (
-            <ChartView chart={chart} title={title} data={data} model={model} enlarged={enlarged} asTable={asTable} onToggle={(key) => setHidden(toggleHidden(shownHidden, key))} tools={tools} />
+            <ChartView chart={chart} type={type} title={title} data={data} model={model} enlarged={enlarged} asTable={asTable} onToggle={(key) => setHidden(toggleHidden(shownHidden, key))} tools={tools} />
           ) : null}
         </>
       )}

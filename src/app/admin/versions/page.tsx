@@ -1,5 +1,5 @@
-import { Unfinished } from "@/features/admin/tools/Unfinished";
+import { VersionsScreen } from "@/features/admin/tools/VersionsScreen";
 
 export default function Page() {
-  return <Unfinished screen="versions" />;
+  return <VersionsScreen />;
 }

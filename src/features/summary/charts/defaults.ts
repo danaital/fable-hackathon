@@ -2,12 +2,12 @@ import type { FieldDef, FieldType, ReportDef } from "@/data/types";
 import { en } from "@/i18n/en";
 import { he } from "@/i18n/he";
 import { summaryConfigSchema, type ChartConfig, type LocalizedText, type SummaryConfigInput } from "../config";
+import { DATE_TYPES } from "./timeStep";
 
 type ChartInput = SummaryConfigInput["charts"][number];
 type TitleKey = "charts.default.byField" | "charts.default.byMonth";
 
 const CATEGORY_TYPES: ReadonlySet<FieldType> = new Set(["enum", "status"]);
-const DATE_TYPES: ReadonlySet<FieldType> = new Set(["date", "datetime"]);
 /** One chart type per category field, in order; also the number of category charts. */
 const CATEGORY_CHART_TYPES = ["bar", "doughnut"] as const;
 const FALLBACK_LIMIT = 8;

@@ -22,6 +22,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Add one line p
 - `supabase/`: primary schema with 20 en/he lookup tables (codes, labels, badge tones) and 18 entity/fact tables, RLS on every table; a `reports` schema with one view per app report and normalized metadata (`reports.reports`, `reports.report_fields`) mirroring `src/data/reports.ts`; nightly pg_cron refresh; scalable synthetic seed (4M orders at `scale=1`, ~2,000 at `scale=0.0005`); ADR-004 to ADR-006 (backend/data)
 - `docs/bahir/`: Bahir product docs (hub, scope, brand, app architecture, data, build log) (docs-keeper)
 - `docs/bahir/features/`: one behaviour note per feature, 20 notes, written from the original system's behaviour (docs-keeper)
+- `docs/bahir/pitch.md`: two-minute pitch script with timings and demo cues (demo/pitch)
 
 ### Changed
 
