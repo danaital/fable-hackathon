@@ -7,3 +7,4 @@ node_modules/
 graphify-out/cache/
 .vercel
 .env*
+!.env.example
