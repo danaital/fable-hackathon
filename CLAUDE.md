@@ -14,7 +14,7 @@
 2. Work in small slices. One slice at a time.
 3. Before coding against a library API, check the official docs for the installed version (web search or fetch the library's docs site, and check node_modules types). Never invent an API.
 4. After implementation, run tests and the app. If there is a UI, verify with Playwright or a real browser.
-5. Then ask the reviewer subagent to review. Only report issues with confidence 80+.
+5. Then ask the reviewer subagent to review, and the security-reviewer when the change touches auth, routes, data, env vars or model calls. Only report issues with confidence 80+.
 6. If review or tests find a bug, the debugger fixes it and the tester re-runs.
 7. The docs-keeper checks README.md, CLAUDE.md, docs/DECISIONS.md, and docs/CHANGELOG.md before anyone claims done.
 8. Never claim done without a command that was actually run and its output.
@@ -36,6 +36,12 @@ Code quality:
 - No new dependency without a one-line reason in the handoff.
 - Reuse shared UI components instead of copying markup. Keep components small; split files that pass ~300 lines instead of growing them.
 - Don't create a new file when an existing one can host the change.
+
+UI rules:
+- styled-components only. No Tailwind, no shadcn, no inline `style={{}}`.
+- No raw HTML tags in feature components; use the shared primitives in `src/components/ui/` and add one there when missing.
+- All colors, spacing and font sizes come from the theme. One theme destructure per styled component.
+- Hebrew and English are first-class: every user-facing string goes through i18n keys (no hardcoded text, no fallback strings), and RTL is verified in the browser, not assumed. Use logical CSS properties (`margin-inline-start`, not `margin-left`).
 
 Security by default:
 - Validate every request body and query (zod or equivalent) on the server.

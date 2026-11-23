@@ -13,7 +13,6 @@ Official sources for every command below:
 - Vercel MCP: https://vercel.com/docs/agent-resources/vercel-mcp
 - Supabase MCP: https://supabase.com/docs/guides/ai-tools/mcp
 - Playwright MCP: https://code.claude.com/docs/en/mcp-quickstart
-- shadcn skills: https://ui.shadcn.com/docs/skills
 - Vercel agent skills: https://github.com/vercel-labs/agent-skills
 - Obsidian skills: https://obsidian.md/help/skills
 - Graphify: https://github.com/Graphify-Labs/graphify (default branch `v8`) and https://docs.graphify.com/open-source/quickstart
@@ -77,7 +76,7 @@ Required paths:
 - `docs/CHANGELOG.md`
 - `.claude/settings.json`
 - `.claude/hooks/format-prettier.sh` (executable; `chmod +x` on macOS and Linux)
-- `.claude/agents/planner.md`, `implementer.md`, `tester.md`, `reviewer.md`, `debugger.md`, `docs-keeper.md`
+- `.claude/agents/planner.md`, `implementer.md`, `tester.md`, `reviewer.md`, `security-reviewer.md`, `debugger.md`, `docs-keeper.md`
 - `.claude/skills/hackathon-demo-ready/SKILL.md`
 - `.claude/skills/pr-handoff/SKILL.md`
 - `.claude/skills/code-review-checklist/SKILL.md`
@@ -101,6 +100,12 @@ claude plugin install vercel@claude-plugins-official --scope project
 claude plugin install github@claude-plugins-official --scope project
 claude plugin install playwright@claude-plugins-official --scope project
 claude plugin install skill-creator@claude-plugins-official --scope project
+claude plugin install claude-md-management@claude-plugins-official --scope project
+claude plugin install hookify@claude-plugins-official --scope project
+claude plugin install typescript-lsp@claude-plugins-official --scope project
+claude plugin install security-guidance@claude-plugins-official --scope project
+claude plugin marketplace add obsidianmd/obsidian-skills --scope project
+claude plugin install obsidian@obsidian-skills --scope project
 ```
 
 If the official marketplace was already added, continue. If a plugin install aborts because it needs a TTY confirmation (official docs: `-y` is ignored when Claude Code runs the command through its Bash tool), stop that plugin and add the exact command to the human paste block at the end. Do not invent a workaround.
@@ -163,10 +168,9 @@ Do not add this to the committed `.mcp.json` unless the team agrees. The local G
 
 ## 6. Optional skills and tools (ask first)
 
-If the human wants them, these official commands are verified:
+Install this one by default (the team uses styled-components, not Tailwind, so shadcn is intentionally excluded):
 
 ```bash
-npx skills add shadcn/ui
 npx skills add vercel-labs/agent-skills
 ```
 
@@ -262,6 +266,12 @@ claude plugin install vercel@claude-plugins-official --scope project
 claude plugin install github@claude-plugins-official --scope project
 claude plugin install playwright@claude-plugins-official --scope project
 claude plugin install skill-creator@claude-plugins-official --scope project
+claude plugin install claude-md-management@claude-plugins-official --scope project
+claude plugin install hookify@claude-plugins-official --scope project
+claude plugin install typescript-lsp@claude-plugins-official --scope project
+claude plugin install security-guidance@claude-plugins-official --scope project
+claude plugin marketplace add obsidianmd/obsidian-skills --scope project
+claude plugin install obsidian@obsidian-skills --scope project
 ```
 
 Same work as slash commands, if you prefer to paste inside a Claude Code session (choose project scope when asked):
@@ -275,5 +285,11 @@ Same work as slash commands, if you prefer to paste inside a Claude Code session
 /plugin install github@claude-plugins-official
 /plugin install playwright@claude-plugins-official
 /plugin install skill-creator@claude-plugins-official
+/plugin install claude-md-management@claude-plugins-official
+/plugin install hookify@claude-plugins-official
+/plugin install typescript-lsp@claude-plugins-official
+/plugin install security-guidance@claude-plugins-official
+/plugin marketplace add obsidianmd/obsidian-skills
+/plugin install obsidian@obsidian-skills
 /mcp
 ```

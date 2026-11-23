@@ -21,7 +21,6 @@ Verified sources used throughout:
 - https://github.com/anthropics/claude-plugins-official
 - https://github.com/Graphify-Labs/graphify
 - https://obsidian.md/help/skills
-- https://ui.shadcn.com/docs/skills
 - https://code.claude.com/docs/en/mcp
 - https://vercel.com/docs/agent-resources/vercel-mcp
 - https://supabase.com/docs/guides/ai-tools/mcp
@@ -47,7 +46,7 @@ Commit these paths from this pack:
 - `.claude/settings.json` — shared permissions, Prettier hook, enabled plugins
 - `.claude/settings.local.json` — do not commit (personal overrides; already gitignored)
 - `.claude/hooks/format-prettier.sh` — formats a file after Claude edits it (needs `jq`)
-- `.claude/agents/` — planner, implementer, tester, reviewer, debugger, docs-keeper
+- `.claude/agents/` — planner, implementer, tester, reviewer, security-reviewer, debugger, docs-keeper
 - `.claude/skills/` — hackathon-demo-ready, pr-handoff, code-review-checklist, docs-update
 - `.gitignore`, `.env.example`, `docs/DECISIONS.md`, `docs/CHANGELOG.md`
 
@@ -63,7 +62,7 @@ Suggested split:
 
 | Role | Owns | Typical plugins |
 | --- | --- | --- |
-| Frontend | UI, components, visual demo path | frontend-design, shadcn skill, Figma if needed, Playwright |
+| Frontend | UI, components, visual demo path | frontend-design, Vercel agent skills, Figma if needed, Playwright |
 | Backend / data | API, database, auth | supabase |
 | AI / prompts | Model calls, prompts, library docs | skill-creator, optional Graphify |
 | Demo / pitch | Deploy, README, 2-minute script, merge captain | vercel, github, commit-commands, /hackathon-demo-ready |
@@ -106,6 +105,12 @@ claude plugin install vercel@claude-plugins-official --scope project
 claude plugin install github@claude-plugins-official --scope project
 claude plugin install playwright@claude-plugins-official --scope project
 claude plugin install skill-creator@claude-plugins-official --scope project
+claude plugin install claude-md-management@claude-plugins-official --scope project
+claude plugin install hookify@claude-plugins-official --scope project
+claude plugin install typescript-lsp@claude-plugins-official --scope project
+claude plugin install security-guidance@claude-plugins-official --scope project
+claude plugin marketplace add obsidianmd/obsidian-skills --scope project
+claude plugin install obsidian@obsidian-skills --scope project
 ```
 
 Or the same commands inside a session as `/plugin install <name>@claude-plugins-official`, then choose project scope.
@@ -182,13 +187,12 @@ Browse more, but do not install blindly: https://github.com/hesreallyhim/awesome
 ## 6. UI design
 
 - Official frontend skill: `/plugin install frontend-design@claude-plugins-official` — https://claude.com/marketplace/plugins/frontend-design
-- Official shadcn skill: `npx skills add shadcn/ui` — https://ui.shadcn.com/docs/skills
-- Optional shadcn MCP: `npx shadcn@latest mcp init --client claude`, then restart Claude Code — https://ui.shadcn.com/docs/mcp
+- UI stack: styled-components with a shared theme and our own primitives in `src/components/ui/`. No Tailwind, so no shadcn.
 - Official Vercel agent skills (React performance, composition, accessibility, deploy): `npx skills add vercel-labs/agent-skills` — https://github.com/vercel-labs/agent-skills
 - Figma, if you have a file: `/plugin install figma@claude-plugins-official`
 - Check the screen with Playwright, not only by reading the code
 
-Suggested flow: pick a visual direction with frontend-design, compose with shadcn instead of inventing every control, then verify in a browser.
+Suggested flow: pick a visual direction with frontend-design, compose from the shared `src/components/ui/` primitives instead of inventing every control, in both Hebrew (RTL) and English, then verify in a browser.
 
 ## 7. Graphify and Obsidian
 
@@ -253,6 +257,6 @@ Official Vercel, Playwright, and Supabase plugins may also start MCP servers. Do
 
 ## 10. How the agent team works
 
-Flow: `/plan` + planner → implementer → tester → reviewer → debugger (if needed) → docs-keeper → done.
+Flow: `/plan` + planner → implementer → tester → reviewer (+ security-reviewer for auth, data or model calls) → debugger (if needed) → docs-keeper → done.
 
 Each human runs that loop on their own slice, not on the same files. Plan together first. Hand off with `/pr-handoff`. Review before merge. Run `/hackathon-demo-ready` before you present.
