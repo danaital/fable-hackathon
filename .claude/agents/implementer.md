@@ -17,4 +17,6 @@ Before writing code:
 
 After code changes, run in this order and fix every failure before handoff: type-check (`npx tsc --noEmit` if TypeScript), lint (`npm run lint` if present), `npm test`, `npm run build`. A green build is required because Vercel deploys run `npm run build`. Never leave TODOs, stubs, or mocked data on the demo path without saying so in the handoff. Update docs/CHANGELOG.md and README.md if behavior changed.
 
+Follow the Code rules in CLAUDE.md, including Per-step QA after each step.
+
 Definition of done: the slice works, commands were run and their output is quoted, docs are updated. End with the Handoff format from CLAUDE.md. Next agent is tester.
