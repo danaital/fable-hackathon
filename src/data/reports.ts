@@ -11,9 +11,10 @@ import {
   TICKET_CHANNELS,
   TICKET_STATUSES,
 } from "./seed-extra";
+import { withStaticTwins } from "./staticTwins";
 import type { ReportDef, Row } from "./types";
 
-export const REPORTS: readonly ReportDef[] = [
+const BASE_REPORTS: readonly ReportDef[] = [
   {
     id: "orders",
     titleKey: "report.orders.title",
@@ -189,6 +190,9 @@ export const REPORTS: readonly ReportDef[] = [
     ],
   },
 ];
+
+/** Every convertible money field is followed by its static twin (see staticTwins.ts). */
+export const REPORTS: readonly ReportDef[] = BASE_REPORTS.map((report) => ({ ...report, fields: withStaticTwins(report.fields) }));
 
 export function getReport(id: string): ReportDef | undefined {
   return REPORTS.find((report) => report.id === id);

@@ -29,7 +29,8 @@ export function CurrencyNotice() {
     );
   }
 
-  const money = report.fields.filter((field) => field.type === "currency" && field.currencyKey);
+  // Static twins always keep each row's own currency, so they never count as "mixed".
+  const money = report.fields.filter((field) => field.type === "currency" && field.currencyKey && !field.static);
   const missing = rows.filter((row) => money.some((field) => getConversion(row, field.key)?.missingRate)).length;
   if (missing > 0) {
     return (

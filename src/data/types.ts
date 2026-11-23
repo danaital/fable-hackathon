@@ -30,6 +30,8 @@ export interface FieldDef {
   optionTones?: Readonly<Record<string, ToneName>>;
   /** For currency fields: the row field that holds the ISO currency code. */
   currencyKey?: string;
+  /** A static money field is never converted: it always shows the row's own currency. */
+  static?: boolean;
 }
 
 export const REPORT_ICONS = ["orders", "customers", "invoices", "shipments", "tickets", "products"] as const;

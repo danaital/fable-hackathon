@@ -30,6 +30,7 @@ const en = {
 
   "currency.converting": "Converting…",
   "currency.converted": "converted",
+  "currency.convertedAt": "converted at {rate}",
   "currency.convertedDetail": "Converted from {original} at {rate}, rate of {date}",
   "currency.noRate": "no rate",
   "currency.noRateDetail": "No exchange rate for this amount, so it shows in its original currency.",
@@ -74,6 +75,7 @@ const he: Record<keyof typeof en, string> = {
 
   "currency.converting": "ממיר…",
   "currency.converted": "מומר",
+  "currency.convertedAt": "מומר לפי שער {rate}",
   "currency.convertedDetail": "הומר מ־{original} לפי שער {rate}, שער מתאריך {date}",
   "currency.noRate": "אין שער",
   "currency.noRateDetail": "אין שער המרה לסכום הזה, ולכן הוא מוצג במטבע המקורי.",

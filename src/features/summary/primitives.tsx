@@ -119,6 +119,13 @@ export const Skeleton = styled.div`
 
 export const ValueText = styled.span<{ $small?: boolean }>`
   ${({ theme: { font }, $small }) => css`
+    /* The value sits in the middle of the space the card has left, both ways. */
+    display: flex;
+    /* A lone value fills the card; a small one stays with its label so the pair is centred together. */
+    flex: ${$small ? "0 0 auto" : "1 1 auto"};
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     font-size: ${$small ? font.size.xl : font.size.xxl};
     font-weight: ${font.weight.medium};
     line-height: 1.2;

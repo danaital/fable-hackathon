@@ -74,9 +74,10 @@ export function CurrencyAmount({ row, field, format }: CurrencyAmountProps) {
   }
 
   const original = format.currency(conversion.original, conversion.source);
+  const rate = conversion.rate?.toFixed(RATE_DIGITS) ?? "";
   const detail = t("currency.convertedDetail", {
     original,
-    rate: conversion.rate?.toFixed(RATE_DIGITS) ?? "",
+    rate,
     date: conversion.rateDate ? format.date(conversion.rateDate) : "",
   });
   return (
@@ -89,7 +90,8 @@ export function CurrencyAmount({ row, field, format }: CurrencyAmountProps) {
       ) : null}
       <Marker title={detail}>
         <ArrowLeftRight size={ICON_SIZE} aria-hidden />
-        <Text aria-hidden>{t("currency.converted")}</Text>
+        {/* The rate is shown in the cell: a hover-only tooltip never reaches touch or keyboard users. */}
+        <Text aria-hidden>{rate ? t("currency.convertedAt", { rate }) : t("currency.converted")}</Text>
         <VisuallyHidden>{detail}</VisuallyHidden>
       </Marker>
     </Amount>

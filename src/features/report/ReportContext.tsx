@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { addStaticValues } from "@/data/staticTwins";
 import type { ReportDef, Row } from "@/data/types";
 import { convertRows } from "@/features/currency/convert";
 import { useCurrency } from "@/features/currency/CurrencyProvider";
@@ -40,7 +41,8 @@ export function ReportProvider({ report, rows, children }: { report: ReportDef; 
   // Amounts are converted once, up front, so every consumer of the rows sees the display currency.
   const { rates } = useCurrency();
   const displayRows = useMemo(
-    () => convertRows({ rows, fields: report.fields, currency: settings.currency, rates }),
+    // Static twins are filled from the stored amounts first, so they keep each row's own currency.
+    () => convertRows({ rows: addStaticValues(rows, report.fields), fields: report.fields, currency: settings.currency, rates }),
     [rows, report.fields, settings.currency, rates],
   );
 

@@ -69,7 +69,8 @@ describe("getReportRows", () => {
     const body = await getReportRows("orders", null);
     expect(body?.truncated).toBeUndefined();
     expect(body?.rows.length).toBeGreaterThan(0);
-    const keys = REPORTS[0].fields.map((item) => item.key);
+    // Static twins are filled in the browser from the stored amounts, so stored rows do not carry them.
+    const keys = REPORTS[0].fields.filter((item) => !item.static).map((item) => item.key);
     expect(Object.keys(body?.rows[0] ?? {})).toEqual(expect.arrayContaining(keys));
   });
 });

@@ -61,7 +61,8 @@ export function parseAmount(value: CellValue | undefined): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-const moneyFields = (fields: readonly FieldDef[]) => fields.filter((field) => field.type === "currency" && field.currencyKey);
+// Static money fields are left out: they always show the row's own currency.
+const moneyFields = (fields: readonly FieldDef[]) => fields.filter((field) => field.type === "currency" && field.currencyKey && !field.static);
 
 export interface RowsInput {
   rows: readonly Row[];

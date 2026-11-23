@@ -47,7 +47,7 @@ export function ValueNotice({ children }: { children: ReactNode }) {
 
 function Figure({ label, measure, tools, note }: { label: string; measure: Measure; tools: SummaryTools; note?: string }) {
   return (
-    <Stack $gap="xs" $grow>
+    <Stack $gap="xs" $grow $align="center" $justify="center">
       <Text $muted $size="sm">
         {label}
       </Text>
@@ -75,7 +75,8 @@ function ValueBody({ result, tools }: BodyProps) {
 function DualBody({ result, widget, tools }: BodyProps) {
   if (result.kind !== "dual" || widget.type !== "dualValue") return null;
   return (
-    <Stack $row $gap="lg" $align="stretch">
+    // Grows to fill the card, so the two figures sit in the middle of it rather than under the header.
+    <Stack $row $gap="lg" $align="stretch" $grow>
       <Figure label={tools.text(widget.left.title)} measure={result.left} tools={tools} />
       <Separator aria-hidden />
       <Figure label={tools.text(widget.right.title)} measure={result.right} tools={tools} />
