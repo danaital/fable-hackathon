@@ -68,7 +68,7 @@ export function ImportExportScreen() {
     const result = last?.undo();
     if (result === "undone") lastImportStore.set(null);
     if (result === "undone") toast.success({ title: "adminTools.importExport.undone" });
-    else if (result) toast.error({ title: `adminTools.importExport.undo.${result}` });
+    else if (result) toast.error({ title: `adminTools.importExport.undoResult.${result}` });
   };
 
   return (

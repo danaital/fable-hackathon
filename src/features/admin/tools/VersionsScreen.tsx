@@ -35,7 +35,7 @@ interface Editing {
   error: VersionError | null;
 }
 
-/** The upcoming version and the released ones. The About page reads the same store through `useVersions()`. */
+/** The upcoming version and the released ones. `useVersions()` gives the same store to the About page. */
 export function VersionsScreen() {
   const { t, locale } = useI18n();
   const toast = useToast();
@@ -159,7 +159,7 @@ export function VersionsScreen() {
           {(id) => <Input id={id} type="date" value={draft.releaseDate ?? ""} onChange={(event) => change({ releaseDate: event.target.value || null })} />}
         </Field>
         {LOCALES.map((language) => (
-          <Field key={language} label={t(`adminTools.versions.title.${language}`)}>
+          <Field key={language} label={t(`adminTools.versions.titleIn.${language}`)}>
             {(id) => (
               <Input
                 id={id}
@@ -174,7 +174,7 @@ export function VersionsScreen() {
           </Field>
         ))}
         {LOCALES.map((language) => (
-          <Field key={language} label={t(`adminTools.versions.notes.${language}`)}>
+          <Field key={language} label={t(`adminTools.versions.notesIn.${language}`)}>
             {(id) => (
               <Textarea
                 id={id}

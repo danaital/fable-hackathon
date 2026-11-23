@@ -1,4 +1,5 @@
 import { createElement, type ReactElement } from "react";
+import { jsx } from "react/jsx-runtime";
 import { renderToString } from "react-dom/server";
 import { ThemeProvider } from "styled-components";
 import { describe, expect, it } from "vitest";
@@ -16,8 +17,9 @@ import { UserDialog } from "./UserDialog";
 
 // Render smoke tests: each piece renders to HTML in both languages without throwing. Behaviour is covered by the logic tests.
 
+// A .test.ts file has no JSX; `jsx` is what JSX compiles to, with children inside the props.
 const html = (element: ReactElement, locale: Locale = "en") =>
-  renderToString(createElement(ThemeProvider, { theme: lightTheme, children: createElement(I18nProvider, { initialLocale: locale, children: element }) }));
+  renderToString(jsx(ThemeProvider, { theme: lightTheme, children: jsx(I18nProvider, { initialLocale: locale, children: element }) }));
 
 const noop = () => undefined;
 const root: Actor = { id: "demo-root", role: "super-admin", isRoot: true };

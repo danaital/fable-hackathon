@@ -58,7 +58,7 @@ export function EntitiesScreen() {
     { key: "id", header: t("adminTools.id"), cell: (row) => <Ltr>{row.id}</Ltr> },
     { key: "key", header: t("adminTools.entities.key"), cell: (row) => <Ltr>{row.key}</Ltr> },
     { key: "table", header: t("adminTools.entities.table"), cell: (row) => <Ltr>{row.tableName}</Ltr> },
-    { key: "type", header: t("adminTools.entities.type"), cell: (row) => t(`adminTools.entities.type.${row.entityType}`) },
+    { key: "type", header: t("adminTools.entities.type"), cell: (row) => t(`adminTools.entities.typeOf.${row.entityType}`) },
     { key: "columns", header: t("adminTools.entities.columns"), cell: (row) => <Ltr>{row.columns.length}</Ltr> },
     {
       key: "status",
@@ -110,7 +110,7 @@ export function EntitiesScreen() {
           label={t("adminTools.entities.type")}
           value={draft.entityType}
           onChange={(value) => isEntityType(value) && change({ entityType: value })}
-          options={ENTITY_TYPES.map((type) => ({ value: type, label: t(`adminTools.entities.type.${type}`) }))}
+          options={ENTITY_TYPES.map((type) => ({ value: type, label: t(`adminTools.entities.typeOf.${type}`) }))}
         />
         <Field label={t("adminTools.description")}>
           {(id) => <Textarea id={id} value={draft.description} maxLength={TEXT_MAX} onChange={(event) => change({ description: event.target.value })} />}
